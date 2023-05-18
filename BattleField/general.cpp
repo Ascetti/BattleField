@@ -831,6 +831,17 @@ void Play(int& mode, Proportions window, Zones Game, Elements& GameProgress, App
 	//динамические
 	bool animation = false;
 	bool down = false;
+	int ThrowMax;
+
+
+	if (GameProgress.Round == 0)
+	{
+		ThrowMax = 1;
+	}
+	else
+	{
+		ThrowMax = 3;
+	}
 
 	char phasetext[100] = u8"Жеребьевка";
 
@@ -906,6 +917,14 @@ void Play(int& mode, Proportions window, Zones Game, Elements& GameProgress, App
 				quit = true;
 				mode = 0;
 				break;
+			case SDL_KEYDOWN:
+				if (event.key.keysym.scancode == SDL_SCANCODE_ESCAPE)
+				{
+					PauseMenu(mode, Page, window);
+					if (mode == 1 || mode == 0)
+						quit = true;
+				}
+				break;
 			case SDL_MOUSEBUTTONDOWN:
 				if (ButtonClick(Game.PauseButton, event.button.x, event.button.y) && event.button.button == SDL_BUTTON_LEFT)
 				{
@@ -922,12 +941,12 @@ void Play(int& mode, Proportions window, Zones Game, Elements& GameProgress, App
 				{
 					animation = true;
 				}
-				if (ButtonClick(Game.SkipButton1, event.button.x, event.button.y) && event.button.button == SDL_BUTTON_LEFT && GameProgress.Queue == 1)
+				if (ButtonClick(Game.SkipButton1, event.button.x, event.button.y) && event.button.button == SDL_BUTTON_LEFT && GameProgress.Queue == 1 && animation == false)
 				{
 					GameProgress.Queue = 2;
 					gameglasscopy.x = width - infwidth / 2 - (playheight / 12 * 11) / 29 * 19 / 2;
 				}
-				if (ButtonClick(Game.SkipButton2, event.button.x, event.button.y) && event.button.button == SDL_BUTTON_LEFT && GameProgress.Queue == 2)
+				if (ButtonClick(Game.SkipButton2, event.button.x, event.button.y) && event.button.button == SDL_BUTTON_LEFT && GameProgress.Queue == 2 && animation == false)
 				{
 					GameProgress.Queue = 1;
 					gameglasscopy.x = infwidth / 2 - (playheight / 12 * 11) / 29 * 19 / 2;
