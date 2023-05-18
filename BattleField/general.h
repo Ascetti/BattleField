@@ -84,6 +84,9 @@ struct Elements
 	char Gambler2[ams];
 	char Combo1[ams];
 	char Combo2[ams];
+	int ThrowMax;
+	int LeadSwap;
+	int LeadThrows;
 	int DiceValues[dq];
 };
 
@@ -109,9 +112,10 @@ void Reset(Elements& GameProgress);
 void ReadGameProgressDataFile(Elements& GameProgress);
 void PrintGameProgressDataFile(Elements GameProgress);
 
-SDL_Texture* GenerateCombination(Elements GameProgress, TTF_Font* font, SDL_Rect* rect, SDL_Color fg);
+SDL_Texture* GenerateCombination(Elements GameProgress, TTF_Font* font, SDL_Rect* rect, SDL_Color fg, int &worth);
 int FindBestCombination(Elements &GameProgress);
 void FPSControl();
+//void ChangeText(char* text, const char* newtext);
 //int Input_Data(SDL_Window* window, SDL_Renderer* renderer, SDL_Rect& inputRect);
 
 void MainMenu(int &mode, Appearance Page, Proportions window);
