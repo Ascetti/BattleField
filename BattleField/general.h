@@ -25,7 +25,7 @@
 //dice quantity
 #define dq 10
 //speed
-#define speed 4
+#define speed 7
 
 using namespace std;
 

@@ -50,7 +50,7 @@ void Init(Proportions &window)
 	window.width = dm.w;
 	window.height = dm.h;
 
-	win = SDL_CreateWindow(u8"Че?!", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, window.width, window.width, SDL_WINDOW_SHOWN | SDL_WINDOW_MAXIMIZED);
+	win = SDL_CreateWindow(u8"Че?!", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, window.width, window.width, SDL_WINDOW_SHOWN | SDL_WINDOW_FULLSCREEN);
 	if (win == NULL)
 	{
 		cout << "Couldn't create Window! Error: " << SDL_GetError();
@@ -830,7 +830,7 @@ void Play(int& mode, Proportions window, Zones Game, Elements& GameProgress, App
 
 	//динамические
 	bool animation = false;
-	
+	bool down = false;
 
 	char phasetext[100] = u8"Жеребьевка";
 
@@ -848,15 +848,20 @@ void Play(int& mode, Proportions window, Zones Game, Elements& GameProgress, App
 	SDL_Rect final_rect;
 
 	SDL_Rect glass_rect;
+	SDL_Rect combo1_rect;
+	SDL_Rect combo2_rect;
 
 	SDL_Texture* score1 = GenerateTextureFromText(points1, Franklin, &score1_rect, { 255, 255, 255, 0 });
 	SDL_Texture* score2 = GenerateTextureFromText(points2, Franklin, &score2_rect, { 255, 255, 255, 0 });
 
 	//if (round == 0)
-	SDL_Texture* phase = GenerateTextureFromText(phasetext, Franklin, &phase_rect, { 255, 255, 255, 0 });
+	SDL_Texture* phase = GenerateTextureFromText(phasetext, Franklin, &phase_rect, { 255, 255, 255, 0 }); ;
 	//else if (round == 1)
-
-	SDL_Texture* png = LoadTextureFromFile("images\\1.png");
+	SDL_Texture* dice1 = NULL;
+	SDL_Texture* dice2 = NULL;
+	SDL_Texture* glass = LoadTextureFromFile("images\\glass.png");
+	SDL_Texture* combo1 = GenerateTextureFromText(GameProgress.Combo1, SanFrancisco, &combo1_rect, { 255, 255, 255, 0 }); 
+	SDL_Texture* combo2 = GenerateTextureFromText(GameProgress.Combo2, SanFrancisco, &combo2_rect, { 255, 255, 255, 0 });
 		
 
 	score1_rect.x = Game.Score1.x + Game.Score1.w / 2 - score1_rect.w / 2;
@@ -867,22 +872,19 @@ void Play(int& mode, Proportions window, Zones Game, Elements& GameProgress, App
 	phase_rect.x = Game.Results.x + Game.Results.w / 2 - phase_rect.w / 2;
 	phase_rect.y = Game.Results.y + Game.Results.y / 3 /*- phase_rect.h / 2*/;
 
+	combo1_rect.x = Game.Combinations1.x + cv;
+	combo1_rect.y = Game.Combinations1.y + Game.Combinations1.h / 2 - combo1_rect.h / 2;
+	combo2_rect.x = Game.Combinations2.x + cv;
+	combo2_rect.y = Game.Combinations2.y + Game.Combinations2.h / 2 - combo2_rect.h / 2;
 	
-	SDL_Texture* dice1 = NULL;
-	SDL_Texture* dice2 = NULL;
-	SDL_Texture* glass = LoadTextureFromFile("images\\glass.png");
-
 
 	SDL_Surface* surface = IMG_Load("images\\glass.png");
 	glass_rect = { 0, 0, surface->w, surface->h };
 	SDL_Rect glass_recttmp = glass_rect;
 	SDL_Rect gameglasscopy = Game.Glass;
 	SDL_FreeSurface(surface);
-	/*Game.Glass.y = infheight;
-	Game.Glass.h = 0;*/
 	gameglasscopy.h = 0;
-	gameglasscopy.y = infheight ;
-	//Game.Glass.y = infheight - Game.Glass.h;
+	gameglasscopy.y = infheight;
 	int i = 0;
 
 
@@ -948,7 +950,7 @@ void Play(int& mode, Proportions window, Zones Game, Elements& GameProgress, App
 		SDL_Rect dice1_rect = Game.Dice1;
 		SDL_Rect dice2_rect = Game.Dice2;
 
-		if (animation == true)
+		if (animation == true && down == false)
 		{
 			if (gameglasscopy.h < playheight / 12 * 11)
 			{
@@ -962,21 +964,36 @@ void Play(int& mode, Proportions window, Zones Game, Elements& GameProgress, App
 			else
 			{
 				GenerateRandValues(GameProgress.DiceValues, GameProgress.Queue);
-				animation = false;
+				//animation = false;
+				down = true;
 			}
 		}
-		if (animation == false)
+		if (animation == true && down == true)
 		{
 			
 			if (gameglasscopy.y >= infheight)
 				gameglasscopy.y -= speed;
-			else if (gameglasscopy.h >= 0 /*&& gameglasscopy.y >= infheight*/)
+			else if (gameglasscopy.h >= 0)
 			{
 				glass_recttmp.y = glass_rect.h - i * 0.755;
 				glass_recttmp.h = i * 0.755;
 				gameglasscopy.h = i;
 				i -= speed;
 			}
+			else
+			{
+				if (GameProgress.Queue == 1)
+				{
+					combo1 = GenerateCombination(GameProgress, SanFrancisco, &combo1_rect, { 255, 255, 255, 0 });
+				}
+				else
+				{
+					combo2 = GenerateCombination(GameProgress, SanFrancisco, &combo2_rect, { 255, 255, 255, 0 });
+				}
+				animation = false;
+				down = false;
+			}
+			
 		}
 		
 
@@ -1137,11 +1154,11 @@ void Play(int& mode, Proportions window, Zones Game, Elements& GameProgress, App
 			SDL_DestroyTexture(dice2);
 		}
 
+		if (animation == true)
+			SDL_RenderCopy(ren, glass, &glass_recttmp, &gameglasscopy);
 		
-		
-		//SDL_RenderCopy(ren, glass, NULL, &Game.Glass);
-		SDL_RenderCopy(ren, glass, &glass_recttmp, &gameglasscopy);
-		//SDL_RenderCopy(ren, png, NULL, NULL);
+		SDL_RenderCopy(ren, combo1, NULL, &combo1_rect);
+		SDL_RenderCopy(ren, combo2, NULL, &combo2_rect);
 		
 
 		SDL_RenderPresent(ren);
@@ -1170,8 +1187,9 @@ void Play(int& mode, Proportions window, Zones Game, Elements& GameProgress, App
 	SDL_DestroyTexture(dice1);
 	SDL_DestroyTexture(dice2);
 	SDL_DestroyTexture(glass);
+	SDL_DestroyTexture(combo1);
+	SDL_DestroyTexture(combo2);
 
-	SDL_DestroyTexture(png);
 }
 
 void PageLayout(Appearance& Page, Proportions window, Zones& Game)
@@ -1288,7 +1306,8 @@ SDL_Texture* LoadTextureFromFile(const char* filename)
 SDL_Texture* GenerateTextureFromText(char* str, TTF_Font* font, SDL_Rect* rect, SDL_Color fg)
 {
 	SDL_Surface* surface = TTF_RenderUTF8_Blended(font, str, fg);
-	*rect = { 0, 0, surface->w, surface->h };
+	rect->w = surface->w;
+	rect->h = surface->h;
 	SDL_Texture* texture = SDL_CreateTextureFromSurface(ren, surface);
 	SDL_FreeSurface(surface);
 
@@ -1424,7 +1443,15 @@ SDL_Texture* GenerateCombination(Elements GameProgress, TTF_Font* font, SDL_Rect
 	}
 	else
 	{
-
+		FindBestCombination(GameProgress);
+		if (GameProgress.Queue == 1)
+		{
+			return texture = GenerateTextureFromText(GameProgress.Combo1, font, rect, fg);
+		}
+		else
+		{
+			return texture = GenerateTextureFromText(GameProgress.Combo2, font, rect, fg);
+		}
 	}
 }
 
@@ -1493,39 +1520,39 @@ int FindBestCombination(Elements &GameProgress)
 		{
 		case 0:
 			if (GameProgress.Queue == 1)
-				strcpy_s(GameProgress.Combo1, "Пять единиц");
+				strcpy_s(GameProgress.Combo1, u8"Пять единиц");
 			if (GameProgress.Queue == 2)
-				strcpy_s(GameProgress.Combo2, "Пять 1");
+				strcpy_s(GameProgress.Combo2, u8"Пять единиц");
 			return 64;
 		case 1:
 			if (GameProgress.Queue == 1)
-				strcpy_s(GameProgress.Combo1, "Пять 2");
+				strcpy_s(GameProgress.Combo1, u8"Пять двоек");
 			if (GameProgress.Queue == 2)
-				strcpy_s(GameProgress.Combo2, "Пять 2");
+				strcpy_s(GameProgress.Combo2, u8"Пять двоек");
 			return 65;
 		case 2:
 			if (GameProgress.Queue == 1)
-				strcpy_s(GameProgress.Combo1, "Пять 3");
+				strcpy_s(GameProgress.Combo1, u8"Пять троек");
 			if (GameProgress.Queue == 2)
-				strcpy_s(GameProgress.Combo2, "Пять 3");
+				strcpy_s(GameProgress.Combo2, u8"Пять троек");
 			return 66;
 		case 3:
 			if (GameProgress.Queue == 1)
-				strcpy_s(GameProgress.Combo1, "Пять 4");
+				strcpy_s(GameProgress.Combo1, u8"Пять четверок");
 			if (GameProgress.Queue == 2)
-				strcpy_s(GameProgress.Combo2, "Пять 4");
+				strcpy_s(GameProgress.Combo2, u8"Пять четверок");
 			return 67;
 		case 4:
 			if (GameProgress.Queue == 1)
-				strcpy_s(GameProgress.Combo1, "Пять 5");
+				strcpy_s(GameProgress.Combo1, u8"Пять пятерок");
 			if (GameProgress.Queue == 2)
-				strcpy_s(GameProgress.Combo2, "Пять 5");
+				strcpy_s(GameProgress.Combo2, u8"Пять пятерок");
 			return 68;
 		case 5:
 			if (GameProgress.Queue == 1)
-				strcpy_s(GameProgress.Combo1, "Пять 6");
+				strcpy_s(GameProgress.Combo1, u8"Пять шестерок");
 			if (GameProgress.Queue == 2)
-				strcpy_s(GameProgress.Combo2, "Пять 6");
+				strcpy_s(GameProgress.Combo2, u8"Пять шестерок");
 			return 69;
 		}
 	case 4:
@@ -1533,39 +1560,39 @@ int FindBestCombination(Elements &GameProgress)
 		{
 		case 0:
 			if (GameProgress.Queue == 1)
-				strcpy_s(GameProgress.Combo1, "Четыре 1");
+				strcpy_s(GameProgress.Combo1, u8"Четыре единицы");
 			if (GameProgress.Queue == 2)
-				strcpy_s(GameProgress.Combo2, "Четыре 1");
+				strcpy_s(GameProgress.Combo2, u8"Четыре единицы");
 			return 58;
 		case 1:
 			if (GameProgress.Queue == 1)
-				strcpy_s(GameProgress.Combo1, "Четыре 2");
+				strcpy_s(GameProgress.Combo1, u8"Четыре двойки");
 			if (GameProgress.Queue == 2)
-				strcpy_s(GameProgress.Combo2, "Четыре 2");
+				strcpy_s(GameProgress.Combo2, u8"Четыре двойки");
 			return 57;
 		case 2:
 			if (GameProgress.Queue == 1)
-				strcpy_s(GameProgress.Combo1, "Четыре 3");
+				strcpy_s(GameProgress.Combo1, u8"Четыре тройки");
 			if (GameProgress.Queue == 2)
-				strcpy_s(GameProgress.Combo2, "Четыре 3");
+				strcpy_s(GameProgress.Combo2, u8"Четыре тройки");
 			return 60;
 		case 3:
 			if (GameProgress.Queue == 1)
-				strcpy_s(GameProgress.Combo1, "Четыре 4");
+				strcpy_s(GameProgress.Combo1, u8"Четыре четверки");
 			if (GameProgress.Queue == 2)
-				strcpy_s(GameProgress.Combo2, "Четыре 4");
+				strcpy_s(GameProgress.Combo2, u8"Четыре четверки");
 			return 61;
 		case 4:
 			if (GameProgress.Queue == 1)
-				strcpy_s(GameProgress.Combo1, "Четыре 5");
+				strcpy_s(GameProgress.Combo1, u8"Четыре пятерки");
 			if (GameProgress.Queue == 2)
-				strcpy_s(GameProgress.Combo2, "Четыре 5");
+				strcpy_s(GameProgress.Combo2, u8"Четыре пятерки");
 			return 62;
 		case 5:
 			if (GameProgress.Queue == 1)
-				strcpy_s(GameProgress.Combo1, "Четыре 6");
+				strcpy_s(GameProgress.Combo1, u8"Четыре шестерки");
 			if (GameProgress.Queue == 2)
-				strcpy_s(GameProgress.Combo2, "Четыре 6");
+				strcpy_s(GameProgress.Combo2, u8"Четыре шестерки");
 			return 63;
 		}
 	case 3:
@@ -1578,33 +1605,33 @@ int FindBestCombination(Elements &GameProgress)
 				{
 				case 1:
 					if (GameProgress.Queue == 1)
-						strcpy_s(GameProgress.Combo1, "Полный дом (1 + 2)");
+						strcpy_s(GameProgress.Combo1, u8"Полный дом (1 + 2)");
 					if (GameProgress.Queue == 2)
-						strcpy_s(GameProgress.Combo2, "Полный дом (1 + 2)");
+						strcpy_s(GameProgress.Combo2, u8"Полный дом (1 + 2)");
 					return 28;
 				case 2:
 					if (GameProgress.Queue == 1)
-						strcpy_s(GameProgress.Combo1, "Полный дом (1 + 3)");
+						strcpy_s(GameProgress.Combo1, u8"Полный дом (1 + 3)");
 					if (GameProgress.Queue == 2)
-						strcpy_s(GameProgress.Combo2, "Полный дом (1 + 3)");
+						strcpy_s(GameProgress.Combo2, u8"Полный дом (1 + 3)");
 					return 29;
 				case 3:
 					if (GameProgress.Queue == 1)
-						strcpy_s(GameProgress.Combo1, "Полный дом (1 + 4)");
+						strcpy_s(GameProgress.Combo1, u8"Полный дом (1 + 4)");
 					if (GameProgress.Queue == 2)
-						strcpy_s(GameProgress.Combo2, "Полный дом (1 + 4)");
+						strcpy_s(GameProgress.Combo2, u8"Полный дом (1 + 4)");
 					return 30;
 				case 4:
 					if (GameProgress.Queue == 1)
-						strcpy_s(GameProgress.Combo1, "Полный дом (1 + 5)");
+						strcpy_s(GameProgress.Combo1, u8"Полный дом (1 + 5)");
 					if (GameProgress.Queue == 2)
-						strcpy_s(GameProgress.Combo2, "Полный дом (1 + 5)");
+						strcpy_s(GameProgress.Combo2, u8"Полный дом (1 + 5)");
 					return 31;
 				case 5:
 					if (GameProgress.Queue == 1)
-						strcpy_s(GameProgress.Combo1, "Полный дом (1 + 6)");
+						strcpy_s(GameProgress.Combo1, u8"Полный дом (1 + 6)");
 					if (GameProgress.Queue == 2)
-						strcpy_s(GameProgress.Combo2, "Полный дом (1 + 6)");
+						strcpy_s(GameProgress.Combo2, u8"Полный дом (1 + 6)");
 					return 32;
 				}
 			case 1:
@@ -1612,33 +1639,33 @@ int FindBestCombination(Elements &GameProgress)
 				{
 				case 0:
 					if (GameProgress.Queue == 1)
-						strcpy_s(GameProgress.Combo1, "Полный дом (2 + 1)");
+						strcpy_s(GameProgress.Combo1, u8"Полный дом (2 + 1)");
 					if (GameProgress.Queue == 2)
-						strcpy_s(GameProgress.Combo2, "Полный дом (2 + 1)");
+						strcpy_s(GameProgress.Combo2, u8"Полный дом (2 + 1)");
 					return 33;
 				case 2:
 					if (GameProgress.Queue == 1)
-						strcpy_s(GameProgress.Combo1, "Полный дом (2 + 3)");
+						strcpy_s(GameProgress.Combo1, u8"Полный дом (2 + 3)");
 					if (GameProgress.Queue == 2)
-						strcpy_s(GameProgress.Combo2, "Полный дом (2 + 3)");
+						strcpy_s(GameProgress.Combo2, u8"Полный дом (2 + 3)");
 					return 34;
 				case 3:
 					if (GameProgress.Queue == 1)
-						strcpy_s(GameProgress.Combo1, "Полный дом (2 + 4)");
+						strcpy_s(GameProgress.Combo1, u8"Полный дом (2 + 4)");
 					if (GameProgress.Queue == 2)
-						strcpy_s(GameProgress.Combo2, "Полный дом (2 + 4)");
+						strcpy_s(GameProgress.Combo2, u8"Полный дом (2 + 4)");
 					return 35;
 				case 4:
 					if (GameProgress.Queue == 1)
-						strcpy_s(GameProgress.Combo1, "Полный дом (2 + 5)");
+						strcpy_s(GameProgress.Combo1, u8"Полный дом (2 + 5)");
 					if (GameProgress.Queue == 2)
-						strcpy_s(GameProgress.Combo2, "Полный дом (2 + 5)");
+						strcpy_s(GameProgress.Combo2, u8"Полный дом (2 + 5)");
 					return 36;
 				case 5:
 					if (GameProgress.Queue == 1)
-						strcpy_s(GameProgress.Combo1, "Полный дом (2 + 6)");
+						strcpy_s(GameProgress.Combo1, u8"Полный дом (2 + 6)");
 					if (GameProgress.Queue == 2)
-						strcpy_s(GameProgress.Combo2, "Полный дом (2 + 6)");
+						strcpy_s(GameProgress.Combo2, u8"Полный дом (2 + 6)");
 					return 37;
 				}
 			case 2:
@@ -1646,33 +1673,33 @@ int FindBestCombination(Elements &GameProgress)
 				{
 				case 0:
 					if (GameProgress.Queue == 1)
-						strcpy_s(GameProgress.Combo1, "Полный дом (3 + 1)");
+						strcpy_s(GameProgress.Combo1, u8"Полный дом (3 + 1)");
 					if (GameProgress.Queue == 2)
-						strcpy_s(GameProgress.Combo2, "Полный дом (3 + 1)");
+						strcpy_s(GameProgress.Combo2, u8"Полный дом (3 + 1)");
 					return 38;
 				case 1:
 					if (GameProgress.Queue == 1)
-						strcpy_s(GameProgress.Combo1, "Полный дом (3 + 2)");
+						strcpy_s(GameProgress.Combo1, u8"Полный дом (3 + 2)");
 					if (GameProgress.Queue == 2)
-						strcpy_s(GameProgress.Combo2, "Полный дом (3 + 2)");
+						strcpy_s(GameProgress.Combo2, u8"Полный дом (3 + 2)");
 					return 39;
 				case 3:
 					if (GameProgress.Queue == 1)
-						strcpy_s(GameProgress.Combo1, "Полный дом (3 + 4)");
+						strcpy_s(GameProgress.Combo1, u8"Полный дом (3 + 4)");
 					if (GameProgress.Queue == 2)
-						strcpy_s(GameProgress.Combo2, "Полный дом (3 + 4)");
+						strcpy_s(GameProgress.Combo2, u8"Полный дом (3 + 4)");
 					return 40;
 				case 4:
 					if (GameProgress.Queue == 1)
-						strcpy_s(GameProgress.Combo1, "Полный дом (3 + 5)");
+						strcpy_s(GameProgress.Combo1, u8"Полный дом (3 + 5)");
 					if (GameProgress.Queue == 2)
-						strcpy_s(GameProgress.Combo2, "Полный дом (3 + 5)");
+						strcpy_s(GameProgress.Combo2, u8"Полный дом (3 + 5)");
 					return 41;
 				case 5:
 					if (GameProgress.Queue == 1)
-						strcpy_s(GameProgress.Combo1, "Полный дом (3 + 6)");
+						strcpy_s(GameProgress.Combo1, u8"Полный дом (3 + 6)");
 					if (GameProgress.Queue == 2)
-						strcpy_s(GameProgress.Combo2, "Полный дом (3 + 6)");
+						strcpy_s(GameProgress.Combo2, u8"Полный дом (3 + 6)");
 					return 42;
 				}
 			case 3:
@@ -1680,33 +1707,33 @@ int FindBestCombination(Elements &GameProgress)
 				{
 				case 0:
 					if (GameProgress.Queue == 1)
-						strcpy_s(GameProgress.Combo1, "Полный дом (4 + 1)");
+						strcpy_s(GameProgress.Combo1, u8"Полный дом (4 + 1)");
 					if (GameProgress.Queue == 2)
-						strcpy_s(GameProgress.Combo2, "Полный дом (4 + 1)");
+						strcpy_s(GameProgress.Combo2, u8"Полный дом (4 + 1)");
 					return 43;
 				case 1:
 					if (GameProgress.Queue == 1)
-						strcpy_s(GameProgress.Combo1, "Полный дом (4 + 2)");
+						strcpy_s(GameProgress.Combo1, u8"Полный дом (4 + 2)");
 					if (GameProgress.Queue == 2)
-						strcpy_s(GameProgress.Combo2, "Полный дом (4 + 2)");
+						strcpy_s(GameProgress.Combo2, u8"Полный дом (4 + 2)");
 					return 44;
 				case 2:
 					if (GameProgress.Queue == 1)
-						strcpy_s(GameProgress.Combo1, "Полный дом (4 + 3)");
+						strcpy_s(GameProgress.Combo1, u8"Полный дом (4 + 3)");
 					if (GameProgress.Queue == 2)
-						strcpy_s(GameProgress.Combo2, "Полный дом (4 + 3)");
+						strcpy_s(GameProgress.Combo2, u8"Полный дом (4 + 3)");
 					return 45;
 				case 4:
 					if (GameProgress.Queue == 1)
-						strcpy_s(GameProgress.Combo1, "Полный дом (4 + 5)");
+						strcpy_s(GameProgress.Combo1, u8"Полный дом (4 + 5)");
 					if (GameProgress.Queue == 2)
-						strcpy_s(GameProgress.Combo2, "Полный дом (4 + 5)");
+						strcpy_s(GameProgress.Combo2, u8"Полный дом (4 + 5)");
 					return 46;
 				case 5:
 					if (GameProgress.Queue == 1)
-						strcpy_s(GameProgress.Combo1, "Полный дом (4 + 6)");
+						strcpy_s(GameProgress.Combo1, u8"Полный дом (4 + 6)");
 					if (GameProgress.Queue == 2)
-						strcpy_s(GameProgress.Combo2, "Полный дом (4 + 6)");
+						strcpy_s(GameProgress.Combo2, u8"Полный дом (4 + 6)");
 					return 47;
 				}
 			case 4:
@@ -1714,33 +1741,33 @@ int FindBestCombination(Elements &GameProgress)
 				{
 				case 0:
 					if (GameProgress.Queue == 1)
-						strcpy_s(GameProgress.Combo1, "Полный дом (5 + 1)");
+						strcpy_s(GameProgress.Combo1, u8"Полный дом (5 + 1)");
 					if (GameProgress.Queue == 2)
-						strcpy_s(GameProgress.Combo2, "Полный дом (5 + 1)");
+						strcpy_s(GameProgress.Combo2, u8"Полный дом (5 + 1)");
 					return 48;
 				case 1:
 					if (GameProgress.Queue == 1)
-						strcpy_s(GameProgress.Combo1, "Полный дом (5 + 2)");
+						strcpy_s(GameProgress.Combo1, u8"Полный дом (5 + 2)");
 					if (GameProgress.Queue == 2)
-						strcpy_s(GameProgress.Combo2, "Полный дом (5 + 2)");
+						strcpy_s(GameProgress.Combo2, u8"Полный дом (5 + 2)");
 					return 49;
 				case 2:
 					if (GameProgress.Queue == 1)
-						strcpy_s(GameProgress.Combo1, "Полный дом (5 + 3)");
+						strcpy_s(GameProgress.Combo1, u8"Полный дом (5 + 3)");
 					if (GameProgress.Queue == 2)
-						strcpy_s(GameProgress.Combo2, "Полный дом (5 + 3)");
+						strcpy_s(GameProgress.Combo2, u8"Полный дом (5 + 3)");
 					return 50;
 				case 3:
 					if (GameProgress.Queue == 1)
-						strcpy_s(GameProgress.Combo1, "Полный дом (5 + 4)");
+						strcpy_s(GameProgress.Combo1, u8"Полный дом (5 + 4)");
 					if (GameProgress.Queue == 2)
-						strcpy_s(GameProgress.Combo2, "Полный дом (5 + 4)");
+						strcpy_s(GameProgress.Combo2, u8"Полный дом (5 + 4)");
 					return 51;
 				case 5:
 					if (GameProgress.Queue == 1)
-						strcpy_s(GameProgress.Combo1, "Полный дом (5 + 6)");
+						strcpy_s(GameProgress.Combo1, u8"Полный дом (5 + 6)");
 					if (GameProgress.Queue == 2)
-						strcpy_s(GameProgress.Combo2, "Полный дом (5 + 6)");
+						strcpy_s(GameProgress.Combo2, u8"Полный дом (5 + 6)");
 					return 52;
 				}
 			case 5:
@@ -1748,33 +1775,33 @@ int FindBestCombination(Elements &GameProgress)
 				{
 				case 0:
 					if (GameProgress.Queue == 1)
-						strcpy_s(GameProgress.Combo1, "Полный дом (6 + 1)");
+						strcpy_s(GameProgress.Combo1, u8"Полный дом (6 + 1)");
 					if (GameProgress.Queue == 2)
-						strcpy_s(GameProgress.Combo2, "Полный дом (6 + 1)");
+						strcpy_s(GameProgress.Combo2, u8"Полный дом (6 + 1)");
 					return 53;
 				case 1:
 					if (GameProgress.Queue == 1)
-						strcpy_s(GameProgress.Combo1, "Полный дом (6 + 2)");
+						strcpy_s(GameProgress.Combo1, u8"Полный дом (6 + 2)");
 					if (GameProgress.Queue == 2)
-						strcpy_s(GameProgress.Combo2, "Полный дом (6 + 2)");
+						strcpy_s(GameProgress.Combo2, u8"Полный дом (6 + 2)");
 					return 54;
 				case 2:
 					if (GameProgress.Queue == 1)
-						strcpy_s(GameProgress.Combo1, "Полный дом (6 + 3)");
+						strcpy_s(GameProgress.Combo1, u8"Полный дом (6 + 3)");
 					if (GameProgress.Queue == 2)
-						strcpy_s(GameProgress.Combo2, "Полный дом (6 + 3)");
+						strcpy_s(GameProgress.Combo2, u8"Полный дом (6 + 3)");
 					return 55;
 				case 3:
 					if (GameProgress.Queue == 1)
-						strcpy_s(GameProgress.Combo1, "Полный дом (6 + 4)");
+						strcpy_s(GameProgress.Combo1, u8"Полный дом (6 + 4)");
 					if (GameProgress.Queue == 2)
-						strcpy_s(GameProgress.Combo2, "Полный дом (6 + 4)");
+						strcpy_s(GameProgress.Combo2, u8"Полный дом (6 + 4)");
 					return 56;
 				case 4:
 					if (GameProgress.Queue == 1)
-						strcpy_s(GameProgress.Combo1, "Полный дом (6 + 5)");
+						strcpy_s(GameProgress.Combo1, u8"Полный дом (6 + 5)");
 					if (GameProgress.Queue == 2)
-						strcpy_s(GameProgress.Combo2, "Полный дом (6 + 5)");
+						strcpy_s(GameProgress.Combo2, u8"Полный дом (6 + 5)");
 					return 57;
 				}
 			}
@@ -1785,39 +1812,39 @@ int FindBestCombination(Elements &GameProgress)
 			{
 			case 0:
 				if (GameProgress.Queue == 1)
-					strcpy_s(GameProgress.Combo1, "Три 1");
+					strcpy_s(GameProgress.Combo1, u8"Три единицы");
 				if (GameProgress.Queue == 2)
-					strcpy_s(GameProgress.Combo2, "Три 1");
+					strcpy_s(GameProgress.Combo2, u8"Три единицы");
 				return 22;
 			case 1:
 				if (GameProgress.Queue == 1)
-					strcpy_s(GameProgress.Combo1, "Три 2");
+					strcpy_s(GameProgress.Combo1, u8"Три двойки");
 				if (GameProgress.Queue == 2)
-					strcpy_s(GameProgress.Combo2, "Три 2");
+					strcpy_s(GameProgress.Combo2, u8"Три двойки");
 				return 23;
 			case 2:
 				if (GameProgress.Queue == 1)
-					strcpy_s(GameProgress.Combo1, "Три 3");
+					strcpy_s(GameProgress.Combo1, u8"Три тройки");
 				if (GameProgress.Queue == 2)
-					strcpy_s(GameProgress.Combo2, "Три 3");
+					strcpy_s(GameProgress.Combo2, u8"Три тройки");
 				return 24;
 			case 3:
 				if (GameProgress.Queue == 1)
-					strcpy_s(GameProgress.Combo1, "Три 4");
+					strcpy_s(GameProgress.Combo1, u8"Три четверки");
 				if (GameProgress.Queue == 2)
-					strcpy_s(GameProgress.Combo2, "Три 4");
+					strcpy_s(GameProgress.Combo2, u8"Три четверки");
 				return 25;
 			case 4:
 				if (GameProgress.Queue == 1)
-					strcpy_s(GameProgress.Combo1, "Три 5");
+					strcpy_s(GameProgress.Combo1, u8"Три пятерки");
 				if (GameProgress.Queue == 2)
-					strcpy_s(GameProgress.Combo2, "Три 5");
+					strcpy_s(GameProgress.Combo2, u8"Три пятерки");
 				return 26;
 			case 5:
 				if (GameProgress.Queue == 1)
-					strcpy_s(GameProgress.Combo1, "Три 6");
+					strcpy_s(GameProgress.Combo1, u8"Три шестерки");
 				if (GameProgress.Queue == 2)
-					strcpy_s(GameProgress.Combo2, "Три 6");
+					strcpy_s(GameProgress.Combo2, u8"Три шестерки");
 				return 27;
 			}
 		}
@@ -1831,33 +1858,33 @@ int FindBestCombination(Elements &GameProgress)
 				{
 				case 1:
 					if (GameProgress.Queue == 1)
-						strcpy_s(GameProgress.Combo1, "Пара 1 + Пара 2");
+						strcpy_s(GameProgress.Combo1, u8"Пара единиц + Пара двоек");
 					if (GameProgress.Queue == 2)
-						strcpy_s(GameProgress.Combo2, "Пара 1 + Пара 2");
+						strcpy_s(GameProgress.Combo2, u8"Пара единиц + Пара двоек");
 					return 7;
 				case 2:
 					if (GameProgress.Queue == 1)
-						strcpy_s(GameProgress.Combo1, "Пара 1 + Пара 2");
+						strcpy_s(GameProgress.Combo1, u8"Пара единиц + Пара двоек");
 					if (GameProgress.Queue == 2)
-						strcpy_s(GameProgress.Combo2, "Пара 1 + Пара 2");
+						strcpy_s(GameProgress.Combo2, u8"Пара единиц + Пара двоек");
 					return 8;
 				case 3:
 					if (GameProgress.Queue == 1)
-						strcpy_s(GameProgress.Combo1, "Пара 1 + Пара 3");
+						strcpy_s(GameProgress.Combo1, u8"Пара единиц + Пара троек");
 					if (GameProgress.Queue == 2)
-						strcpy_s(GameProgress.Combo2, "Пара 1 + Пара 3");
+						strcpy_s(GameProgress.Combo2, u8"Пара единиц + Пара троек");
 					return 9;
 				case 4:
 					if (GameProgress.Queue == 1)
-						strcpy_s(GameProgress.Combo1, "Пара 1 + Пара 4");
+						strcpy_s(GameProgress.Combo1, u8"Пара единиц + Пара четверок");
 					if (GameProgress.Queue == 2)
-						strcpy_s(GameProgress.Combo2, "Пара 1 + Пара 4");
+						strcpy_s(GameProgress.Combo2, u8"Пара единиц + Пара четверок");
 					return 10;
 				case 5:
 					if (GameProgress.Queue == 1)
-						strcpy_s(GameProgress.Combo1, "Пара 1 + Пара 5");
+						strcpy_s(GameProgress.Combo1, u8"Пара единиц + Пара пятерок");
 					if (GameProgress.Queue == 2)
-						strcpy_s(GameProgress.Combo2, "Пара 1 + Пара 5");
+						strcpy_s(GameProgress.Combo2, u8"Пара единиц + Пара пятерок");
 					return 11;
 				}
 			case 1:
@@ -1865,27 +1892,27 @@ int FindBestCombination(Elements &GameProgress)
 				{
 				case 2:
 					if (GameProgress.Queue == 1)
-						strcpy_s(GameProgress.Combo1, "Пара 2 + Пара 3");
+						strcpy_s(GameProgress.Combo1, u8"Пара двоек + Пара троек");
 					if (GameProgress.Queue == 2)
-						strcpy_s(GameProgress.Combo2, "Пара 2 + Пара 3");
+						strcpy_s(GameProgress.Combo2, u8"Пара двоек + Пара троек");
 					return 12;
 				case 3:
 					if (GameProgress.Queue == 1)
-						strcpy_s(GameProgress.Combo1, "Пара 2 + Пара 4");
+						strcpy_s(GameProgress.Combo1, u8"Пара двоек + Пара четверок");
 					if (GameProgress.Queue == 2)
-						strcpy_s(GameProgress.Combo2, "Пара 2 + Пара 4");
+						strcpy_s(GameProgress.Combo2, u8"Пара двоек + Пара четверок");
 					return 13;
 				case 4:
 					if (GameProgress.Queue == 1)
-						strcpy_s(GameProgress.Combo1, "Пара 2 + Пара 5");
+						strcpy_s(GameProgress.Combo1, u8"Пара двоек + Пара пятерок");
 					if (GameProgress.Queue == 2)
-						strcpy_s(GameProgress.Combo2, "Пара 2 + Пара 5");
+						strcpy_s(GameProgress.Combo2, u8"Пара двоек + Пара пятерок");
 					return 14;
 				case 5:
 					if (GameProgress.Queue == 1)
-						strcpy_s(GameProgress.Combo1, "Пара 2 + Пара 6");
+						strcpy_s(GameProgress.Combo1, u8"Пара двоек + Пара шестерок");
 					if (GameProgress.Queue == 2)
-						strcpy_s(GameProgress.Combo2, "Пара 2 + Пара 6");
+						strcpy_s(GameProgress.Combo2, u8"Пара двоек + Пара шестерок");
 					return 15;
 				}
 			case 2:
@@ -1893,21 +1920,21 @@ int FindBestCombination(Elements &GameProgress)
 				{
 				case 3:
 					if (GameProgress.Queue == 1)
-						strcpy_s(GameProgress.Combo1, "Пара 3 + Пара 4");
+						strcpy_s(GameProgress.Combo1, u8"Пара троек + Пара четверок");
 					if (GameProgress.Queue == 2)
-						strcpy_s(GameProgress.Combo2, "Пара 3 + Пара 4");
+						strcpy_s(GameProgress.Combo2, u8"Пара троек + Пара четверок");
 					return 16;
 				case 4:
 					if (GameProgress.Queue == 1)
-						strcpy_s(GameProgress.Combo1, "Пара 3 + Пара 5");
+						strcpy_s(GameProgress.Combo1, u8"Пара троек + Пара пятерок");
 					if (GameProgress.Queue == 2)
-						strcpy_s(GameProgress.Combo2, "Пара 3 + Пара 5");
+						strcpy_s(GameProgress.Combo2, u8"Пара троек + Пара пятерок");
 					return 17;
 				case 5:
 					if (GameProgress.Queue == 1)
-						strcpy_s(GameProgress.Combo1, "Пара 3 + Пара 6");
+						strcpy_s(GameProgress.Combo1, u8"Пара троек + Пара шестерок");
 					if (GameProgress.Queue == 2)
-						strcpy_s(GameProgress.Combo2, "Пара 3 + Пара 6");
+						strcpy_s(GameProgress.Combo2, u8"Пара троек + Пара шестерок");
 					return 18;
 				}
 			case 3:
@@ -1915,15 +1942,15 @@ int FindBestCombination(Elements &GameProgress)
 				{
 				case 4:
 					if (GameProgress.Queue == 1)
-						strcpy_s(GameProgress.Combo1, "Пара 4 + Пара 5");
+						strcpy_s(GameProgress.Combo1, u8"Пара четверок + Пара пятерок");
 					if (GameProgress.Queue == 2)
-						strcpy_s(GameProgress.Combo2, "Пара 4 + Пара 5");
+						strcpy_s(GameProgress.Combo2, u8"Пара четверок + Пара пятерок");
 					return 19;
 				case 5:
 					if (GameProgress.Queue == 1)
-						strcpy_s(GameProgress.Combo1, "Пара 4 + Пара 6");
+						strcpy_s(GameProgress.Combo1, u8"Пара четверок + Пара шестерок");
 					if (GameProgress.Queue == 2)
-						strcpy_s(GameProgress.Combo2, "Пара 4 + Пара 6");
+						strcpy_s(GameProgress.Combo2, u8"Пара четверок + Пара шестерок");
 					return 20;
 				}
 			case 4:
@@ -1931,9 +1958,9 @@ int FindBestCombination(Elements &GameProgress)
 				{
 				case 5:
 					if (GameProgress.Queue == 1)
-						strcpy_s(GameProgress.Combo1, "Пара 5 + Пара 6");
+						strcpy_s(GameProgress.Combo1, u8"Пара пятерок + Пара шестерок");
 					if (GameProgress.Queue == 2)
-						strcpy_s(GameProgress.Combo2, "Пара 5 + Пара 6");
+						strcpy_s(GameProgress.Combo2, u8"Пара пятерок + Пара шестерок");
 					return 21;
 				}
 			}
@@ -1944,47 +1971,47 @@ int FindBestCombination(Elements &GameProgress)
 			{
 			case 0:
 				if (GameProgress.Queue == 1)
-					strcpy_s(GameProgress.Combo1, "Пара 1");
+					strcpy_s(GameProgress.Combo1, u8"Пара единиц");
 				if (GameProgress.Queue == 2)
-					strcpy_s(GameProgress.Combo2, "Пара 1");
+					strcpy_s(GameProgress.Combo2, u8"Пара единиц");
 				return 1;
 			case 1:
 				if (GameProgress.Queue == 1)
-					strcpy_s(GameProgress.Combo1, "Пара 2");
+					strcpy_s(GameProgress.Combo1, u8"Пара двоек");
 				if (GameProgress.Queue == 2)
-					strcpy_s(GameProgress.Combo2, "Пара 2");
+					strcpy_s(GameProgress.Combo2, u8"Пара двоек");
 				return 2;
 			case 2:
 				if (GameProgress.Queue == 1)
-					strcpy_s(GameProgress.Combo1, "Пара 3");
+					strcpy_s(GameProgress.Combo1, u8"Пара троек");
 				if (GameProgress.Queue == 2)
-					strcpy_s(GameProgress.Combo2, "Пара 3");
+					strcpy_s(GameProgress.Combo2, u8"Пара троек");
 				return 3;
 			case 3:
 				if (GameProgress.Queue == 1)
-					strcpy_s(GameProgress.Combo1, "Пара 4");
+					strcpy_s(GameProgress.Combo1, u8"Пара четверок");
 				if (GameProgress.Queue == 2)
-					strcpy_s(GameProgress.Combo2, "Пара 4");
+					strcpy_s(GameProgress.Combo2, u8"Пара четверок");
 				return 4;
 			case 4:
 				if (GameProgress.Queue == 1)
-					strcpy_s(GameProgress.Combo1, "Пара 5");
+					strcpy_s(GameProgress.Combo1, u8"Пара пятерок");
 				if (GameProgress.Queue == 2)
-					strcpy_s(GameProgress.Combo2, "Пара 5");
+					strcpy_s(GameProgress.Combo2, u8"Пара пятерок");
 				return 5;
 			case 5:
 				if (GameProgress.Queue == 1)
-					strcpy_s(GameProgress.Combo1, "Пара 6");
+					strcpy_s(GameProgress.Combo1, u8"Пара шестерок");
 				if (GameProgress.Queue == 2)
-					strcpy_s(GameProgress.Combo2, "Пара 6");
+					strcpy_s(GameProgress.Combo2, u8"Пара шестерок");
 				return 6;
 			}
 		}
 	case 1:
 		if (GameProgress.Queue == 1)
-			strcpy_s(GameProgress.Combo1, "Ничего");
+			strcpy_s(GameProgress.Combo1, u8"Ничего");
 		if (GameProgress.Queue == 2)
-			strcpy_s(GameProgress.Combo2, "Ничего");
+			strcpy_s(GameProgress.Combo2, u8"Ничего");
 		return 0;
 	}
 }
