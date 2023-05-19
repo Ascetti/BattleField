@@ -8,9 +8,6 @@ int main(int argc, char** argv)
 
 	work();
 
-	/*int combo;
-
-	cout << p();*/
 
 	return 0;
 }

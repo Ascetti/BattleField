@@ -941,9 +941,17 @@ void Play(int& mode, Proportions window, Zones Game, Elements& GameProgress, App
 			case SDL_KEYDOWN:
 				if (event.key.keysym.scancode == SDL_SCANCODE_ESCAPE)
 				{
-					PauseMenu(mode, Page, window);
-					if (mode == 1 || mode == 0)
+					if (GameProgress.GameStatus == 0)
+					{
+						mode = 1;
 						quit = true;
+					}
+					else
+					{
+						PauseMenu(mode, Page, window);
+						if (mode == 1 || mode == 0)
+							quit = true;
+					}
 				}
 				break;
 			case SDL_MOUSEBUTTONDOWN:
@@ -953,185 +961,462 @@ void Play(int& mode, Proportions window, Zones Game, Elements& GameProgress, App
 					if (mode == 1 || mode == 0)
 						quit = true;
 				}
+				//first throw button
 				if (ButtonClick(Game.ThrowButton1, event.button.x, event.button.y) && event.button.button == SDL_BUTTON_LEFT && GameProgress.Queue == 1 && animation == false)
 				{
 					animation = true;
 					if (GameProgress.LeadSwap == 2)
 					{
-						if (Compare[0] == Compare[1])
-						{
-							GameProgress.Round++;
-							GameProgress.ThrowMax = 1;
-							GameProgress.LeadSwap = 0;
-							GameProgress.LeadThrows = 0;
-
-						}
-						else
-						{
-							GameProgress.Round++;
-							GameProgress.ThrowMax = 3;
-							GameProgress.LeadSwap = 0;
-							GameProgress.LeadThrows = 0;
-						}
+						GameProgress.LeadSwap = 0;
+						GameProgress.ThrowMax = 3;
+						GameProgress.LeadThrows = 0;
+						strcpy_s(GameProgress.OutcomeText, u8" ");
+						strcpy_s(GameProgress.FinalText, u8" ");
+						SDL_DestroyTexture(outcome);
+						SDL_DestroyTexture(final);
+						outcome = GenerateTextureFromText(GameProgress.OutcomeText, Franklin, &outcome_rect, { 255, 255, 255, 0 });
+						final = GenerateTextureFromText(GameProgress.FinalText, Franklin, &final_rect, { 255, 255, 255, 0 });
+						outcome_rect.x = Game.Results.x + Game.Results.w / 2 - outcome_rect.w / 2;
+						outcome_rect.y = Game.Results.y + Game.Results.h / 3 + outcome_rect.h / 2;
+						final_rect.x = Game.Results.x + Game.Results.w / 2 - final_rect.w / 2;
+						final_rect.y = Game.Results.y + Game.Results.h / 3 * 2 + final_rect.h / 2;
+						GameProgress.Round++;
+						pt = GameProgress.Round;
+						*phasetext = '\0';
+						_itoa_s(pt, phasetext, 10);
+						strcat_s(phasetext, u8" раунд");
+						SDL_DestroyTexture(phase);
+						SDL_Texture* phase = GenerateTextureFromText(phasetext, Franklin, &phase_rect, { 255, 255, 255, 0 });
+						phase_rect.x = Game.Results.x + Game.Results.w / 2 - phase_rect.w / 2;
+						phase_rect.y = Game.Results.y + phase_rect.h / 2;
 					}
 					if (GameProgress.GameStatus == 0)
 						GameProgress.GameStatus = 1;
 					GameProgress.ThrowMax--;
 					GameProgress.LeadThrows++;
 				}
+				//second throw butoon
 				if (ButtonClick(Game.ThrowButton2, event.button.x, event.button.y) && event.button.button == SDL_BUTTON_LEFT && GameProgress.Queue == 2 && animation == false)
 				{
 					animation = true;
 					if (GameProgress.LeadSwap == 2)
 					{
-						if (Compare[0] == Compare[1])
-						{
-							GameProgress.Round++;
-							GameProgress.ThrowMax = 1;
-							GameProgress.LeadSwap = 0;
-							GameProgress.LeadThrows = 0;
-						}
-						else
-						{
-							GameProgress.Round++;
-							GameProgress.ThrowMax = 3;
-							GameProgress.LeadSwap = 0;
-							GameProgress.LeadThrows = 0;
-						}
+						GameProgress.LeadSwap = 0;
+						GameProgress.ThrowMax = 3;
+						GameProgress.LeadThrows = 0;
+						strcpy_s(GameProgress.OutcomeText, u8" ");
+						strcpy_s(GameProgress.FinalText, u8" ");
+						SDL_DestroyTexture(outcome);
+						SDL_DestroyTexture(final);
+						outcome = GenerateTextureFromText(GameProgress.OutcomeText, Franklin, &outcome_rect, { 255, 255, 255, 0 });
+						final = GenerateTextureFromText(GameProgress.FinalText, Franklin, &final_rect, { 255, 255, 255, 0 });
+						outcome_rect.x = Game.Results.x + Game.Results.w / 2 - outcome_rect.w / 2;
+						outcome_rect.y = Game.Results.y + Game.Results.h / 3 + outcome_rect.h / 2;
+						final_rect.x = Game.Results.x + Game.Results.w / 2 - final_rect.w / 2;
+						final_rect.y = Game.Results.y + Game.Results.h / 3 * 2 + final_rect.h / 2;
+						GameProgress.Round++;
+						pt = GameProgress.Round;
+						*phasetext = '\0';
+						_itoa_s(pt, phasetext, 10);
+						strcat_s(phasetext, u8" раунд");
+						SDL_DestroyTexture(phase);SDL_Texture* phase = GenerateTextureFromText(phasetext, Franklin, &phase_rect, { 255, 255, 255, 0 });
+						phase_rect.x = Game.Results.x + Game.Results.w / 2 - phase_rect.w / 2;
+						phase_rect.y = Game.Results.y + phase_rect.h / 2;
 					}
-					
+					if (GameProgress.GameStatus == 0)
+						GameProgress.GameStatus = 1;
 					GameProgress.ThrowMax--;
 					GameProgress.LeadThrows++;
 				}
+				//first skip button
 				if (ButtonClick(Game.SkipButton1, event.button.x, event.button.y) && event.button.button == SDL_BUTTON_LEFT && GameProgress.Queue == 1 && animation == false && GameProgress.LeadThrows != 0)
 				{
-					if (GameProgress.LeadSwap < 2)
+					if (GameProgress.LeadSwap == 0)
 					{
-						GameProgress.Queue = 1;
-						gameglasscopy.x = infwidth / 2 - (playheight / 12 * 11) / 29 * 19 / 2;
+						GameProgress.Queue = 2;
+						gameglasscopy.x = width - infwidth / 2 - (playheight / 12 * 11) / 29 * 19 / 2;
 						GameProgress.LeadSwap++;
 						GameProgress.ThrowMax = GameProgress.LeadThrows;
+						GameProgress.LeadThrows = 0;
 					}
-					else if (GameProgress.LeadSwap == 2)
+					else if (GameProgress.LeadSwap == 1)
 					{
-						if (Compare[0] > Compare[1])
+						if (GameProgress.Round == 0)
 						{
-							strcpy_s(GameProgress.OutcomeText, u8"Победил");
-							strcpy_s(GameProgress.FinalText, GameProgress.Gambler1);
-							SDL_DestroyTexture(outcome);
-							SDL_DestroyTexture(final);
-							outcome = GenerateTextureFromText(GameProgress.OutcomeText, Franklin, &outcome_rect, { 255, 255, 255, 0 });
-							final = GenerateTextureFromText(GameProgress.FinalText, Franklin, &final_rect, { 255, 255, 255, 0 });
-							outcome_rect.x = Game.Results.x + Game.Results.w / 2 - outcome_rect.w / 2;
-							outcome_rect.y = Game.Results.y + Game.Results.h / 3 + outcome_rect.h / 2;
-							final_rect.x = Game.Results.x + Game.Results.w / 2 - final_rect.w / 2;
-							final_rect.y = Game.Results.y + Game.Results.h / 3 * 2 + final_rect.h / 2;
-							GameProgress.Queue = 1;
-							gameglasscopy.x = infwidth / 2 - (playheight / 12 * 11) / 29 * 19 / 2;
-							GameProgress.p1++;
-							_itoa_s(GameProgress.p1, points1, 10);
-							SDL_DestroyTexture(score1);
-							score1 = GenerateTextureFromText(points1, Franklin, &score1_rect, { 255, 255, 255, 0 });
-						}
-						else if (Compare[0] < Compare[1])
-						{
-							strcpy_s(GameProgress.OutcomeText, u8"Победил");
-							strcpy_s(GameProgress.FinalText, GameProgress.Gambler2);
-							SDL_DestroyTexture(outcome);
-							SDL_DestroyTexture(final);
-							outcome = GenerateTextureFromText(GameProgress.OutcomeText, Franklin, &outcome_rect, { 255, 255, 255, 0 });
-							final = GenerateTextureFromText(GameProgress.FinalText, Franklin, &final_rect, { 255, 255, 255, 0 });
-							outcome_rect.x = Game.Results.x + Game.Results.w / 2 - outcome_rect.w / 2;
-							outcome_rect.y = Game.Results.y + Game.Results.h / 3 + outcome_rect.h / 2;
-							final_rect.x = Game.Results.x + Game.Results.w / 2 - final_rect.w / 2;
-							final_rect.y = Game.Results.y + Game.Results.h / 3 * 2 + final_rect.h / 2;
-							GameProgress.Queue = 2;
-							gameglasscopy.x = width - infwidth / 2 - (playheight / 12 * 11) / 29 * 19 / 2;
-							GameProgress.p2++;
-							_itoa_s(GameProgress.p2, points2, 10);
-							SDL_DestroyTexture(score2);
-							score2 = GenerateTextureFromText(points2, Franklin, &score2_rect, { 255, 255, 255, 0 });
+							if (Compare[0] > Compare[1])
+							{
+								strcpy_s(GameProgress.OutcomeText, u8"Победил");
+								strcpy_s(GameProgress.FinalText, GameProgress.Gambler1);
+								SDL_DestroyTexture(outcome);
+								SDL_DestroyTexture(final);
+								outcome = GenerateTextureFromText(GameProgress.OutcomeText, Franklin, &outcome_rect, { 255, 255, 255, 0 });
+								final = GenerateTextureFromText(GameProgress.FinalText, Franklin, &final_rect, { 255, 255, 255, 0 });
+								outcome_rect.x = Game.Results.x + Game.Results.w / 2 - outcome_rect.w / 2;
+								outcome_rect.y = Game.Results.y + Game.Results.h / 3 + outcome_rect.h / 2;
+								final_rect.x = Game.Results.x + Game.Results.w / 2 - final_rect.w / 2;
+								final_rect.y = Game.Results.y + Game.Results.h / 3 * 2 + final_rect.h / 2;
+								GameProgress.Queue = 1;
+								gameglasscopy.x = infwidth / 2 - (playheight / 12 * 11) / 29 * 19 / 2;
+								GameProgress.Round++;
+							}
+							else if (Compare[0] < Compare[1])
+							{
+								strcpy_s(GameProgress.OutcomeText, u8"Победил");
+								strcpy_s(GameProgress.FinalText, GameProgress.Gambler2);
+								SDL_DestroyTexture(outcome);
+								SDL_DestroyTexture(final);
+								outcome = GenerateTextureFromText(GameProgress.OutcomeText, Franklin, &outcome_rect, { 255, 255, 255, 0 });
+								final = GenerateTextureFromText(GameProgress.FinalText, Franklin, &final_rect, { 255, 255, 255, 0 });
+								outcome_rect.x = Game.Results.x + Game.Results.w / 2 - outcome_rect.w / 2;
+								outcome_rect.y = Game.Results.y + Game.Results.h / 3 + outcome_rect.h / 2;
+								final_rect.x = Game.Results.x + Game.Results.w / 2 - final_rect.w / 2;
+								final_rect.y = Game.Results.y + Game.Results.h / 3 * 2 + final_rect.h / 2;
+								GameProgress.Queue = 2;
+								gameglasscopy.x = width - infwidth / 2 - (playheight / 12 * 11) / 29 * 19 / 2;
+								GameProgress.Round++;
+							}
+							else
+							{
+								strcpy_s(GameProgress.OutcomeText, u8"Ничья");
+								strcpy_s(GameProgress.FinalText, u8"Переигровка");
+								SDL_DestroyTexture(outcome);
+								SDL_DestroyTexture(final);
+								outcome = GenerateTextureFromText(GameProgress.OutcomeText, Franklin, &outcome_rect, { 255, 255, 255, 0 });
+								final = GenerateTextureFromText(GameProgress.FinalText, Franklin, &final_rect, { 255, 255, 255, 0 });
+								outcome_rect.x = Game.Results.x + Game.Results.w / 2 - outcome_rect.w / 2;
+								outcome_rect.y = Game.Results.y + Game.Results.h / 3 + outcome_rect.h / 2;
+								final_rect.x = Game.Results.x + Game.Results.w / 2 - final_rect.w / 2;
+								final_rect.y = Game.Results.y + Game.Results.h / 3 * 2 + final_rect.h / 2;
+								GameProgress.Queue = 1;
+								gameglasscopy.x = infwidth / 2 - (playheight / 12 * 11) / 29 * 19 / 2;
+							}
 						}
 						else
 						{
-							strcpy_s(GameProgress.OutcomeText, u8"Ничья");
-							strcpy_s(GameProgress.FinalText, u8"Переигровка");
-							SDL_DestroyTexture(outcome);
-							SDL_DestroyTexture(final);
-							outcome = GenerateTextureFromText(GameProgress.OutcomeText, Franklin, &outcome_rect, { 255, 255, 255, 0 });
-							final = GenerateTextureFromText(GameProgress.FinalText, Franklin, &final_rect, { 255, 255, 255, 0 });
-							outcome_rect.x = Game.Results.x + Game.Results.w / 2 - outcome_rect.w / 2;
-							outcome_rect.y = Game.Results.y + Game.Results.h / 3 + outcome_rect.h / 2;
-							final_rect.x = Game.Results.x + Game.Results.w / 2 - final_rect.w / 2;
-							final_rect.y = Game.Results.y + Game.Results.h / 3 * 2 + final_rect.h / 2;
-							GameProgress.Queue = 1;
-							gameglasscopy.x = infwidth / 2 - (playheight / 12 * 11) / 29 * 19 / 2;
+							if (Compare[0] > Compare[1])
+							{
+								GameProgress.p1++;
+								if (GameProgress.p1 == 3)
+								{
+									strcpy_s(phasetext, GameProgress.Gambler1);
+									strcpy_s(GameProgress.OutcomeText, u8"Одержал победу");
+									strcpy_s(GameProgress.FinalText, u8"со счетом ");
+									char finaltext[ams];
+									char h[dq];
+									_itoa_s(GameProgress.p1, h, 10);
+									strcat_s(finaltext, h);
+									*h = ':';
+									_itoa_s(GameProgress.p2, h, 10);
+									strcat_s(finaltext, h);
+									strcpy_s(GameProgress.FinalText, finaltext);
+									SDL_DestroyTexture(phase);
+									SDL_DestroyTexture(outcome);
+									SDL_DestroyTexture(final);
+									phase = GenerateTextureFromText(GameProgress.FinalText, Franklin, &phase_rect, { 255, 255, 255, 0 });
+									outcome = GenerateTextureFromText(GameProgress.OutcomeText, Franklin, &outcome_rect, { 255, 255, 255, 0 });
+									final = GenerateTextureFromText(GameProgress.FinalText, Franklin, &final_rect, { 255, 255, 255, 0 });
+									phase_rect.x = Game.Results.x + Game.Results.w / 2 - phase_rect.w / 2;
+									phase_rect.y = Game.Results.y - phase_rect.h / 2;
+									outcome_rect.x = Game.Results.x + Game.Results.w / 2 - outcome_rect.w / 2;
+									outcome_rect.y = Game.Results.y + Game.Results.h / 3 + outcome_rect.h / 2;
+									final_rect.x = Game.Results.x + Game.Results.w / 2 - final_rect.w / 2;
+									final_rect.y = Game.Results.y + Game.Results.h / 3 * 2 + final_rect.h / 2;
+									GameProgress.GameStatus = 0;
+								}
+								else
+								{
+									strcpy_s(GameProgress.OutcomeText, u8"Победил");
+									strcpy_s(GameProgress.FinalText, GameProgress.Gambler1);
+									SDL_DestroyTexture(outcome);
+									SDL_DestroyTexture(final);
+									outcome = GenerateTextureFromText(GameProgress.OutcomeText, Franklin, &outcome_rect, { 255, 255, 255, 0 });
+									final = GenerateTextureFromText(GameProgress.FinalText, Franklin, &final_rect, { 255, 255, 255, 0 });
+									outcome_rect.x = Game.Results.x + Game.Results.w / 2 - outcome_rect.w / 2;
+									outcome_rect.y = Game.Results.y + Game.Results.h / 3 + outcome_rect.h / 2;
+									final_rect.x = Game.Results.x + Game.Results.w / 2 - final_rect.w / 2;
+									final_rect.y = Game.Results.y + Game.Results.h / 3 * 2 + final_rect.h / 2;
+									GameProgress.Queue = 1;
+									gameglasscopy.x = infwidth / 2 - (playheight / 12 * 11) / 29 * 19 / 2;
+									GameProgress.Round++;
+								}
+								_itoa_s(GameProgress.p1, points1, 10);
+								SDL_DestroyTexture(score1);
+								score1 = GenerateTextureFromText(points1, Franklin, &score1_rect, { 255, 255, 255, 0 });
+								score1_rect.x = Game.Score1.x + Game.Score1.w / 2 - score1_rect.w / 2;
+								score1_rect.y = Game.Score1.y + Game.Score1.h / 2 - score1_rect.h / 2;
+							}
+							else if (Compare[0] < Compare[1])
+							{
+								GameProgress.p2++;
+								if (GameProgress.p2 == 3)
+								{
+									strcpy_s(phasetext, GameProgress.Gambler2);
+									strcpy_s(GameProgress.OutcomeText, u8"Одержал победу");
+									strcpy_s(GameProgress.FinalText, u8"со счетом ");
+									char finaltext[ams];
+									char h[dq];
+									_itoa_s(GameProgress.p2, h, 10);
+									strcat_s(finaltext, h);
+									*h = ':';
+									_itoa_s(GameProgress.p1, h, 10);
+									strcat_s(finaltext, h);
+									strcpy_s(GameProgress.FinalText, finaltext);
+									SDL_DestroyTexture(phase);
+									SDL_DestroyTexture(outcome);
+									SDL_DestroyTexture(final);
+									phase = GenerateTextureFromText(GameProgress.FinalText, Franklin, &phase_rect, { 255, 255, 255, 0 });
+									outcome = GenerateTextureFromText(GameProgress.OutcomeText, Franklin, &outcome_rect, { 255, 255, 255, 0 });
+									final = GenerateTextureFromText(GameProgress.FinalText, Franklin, &final_rect, { 255, 255, 255, 0 });
+									phase_rect.x = Game.Results.x + Game.Results.w / 2 - phase_rect.w / 2;
+									phase_rect.y = Game.Results.y - phase_rect.h / 2;
+									outcome_rect.x = Game.Results.x + Game.Results.w / 2 - outcome_rect.w / 2;
+									outcome_rect.y = Game.Results.y + Game.Results.h / 3 + outcome_rect.h / 2;
+									final_rect.x = Game.Results.x + Game.Results.w / 2 - final_rect.w / 2;
+									final_rect.y = Game.Results.y + Game.Results.h / 3 * 2 + final_rect.h / 2;
+									GameProgress.GameStatus = 0;
+								}
+								else
+								{
+									strcpy_s(GameProgress.OutcomeText, u8"Победил");
+									strcpy_s(GameProgress.FinalText, GameProgress.Gambler2);
+									SDL_DestroyTexture(outcome);
+									SDL_DestroyTexture(final);
+									outcome = GenerateTextureFromText(GameProgress.OutcomeText, Franklin, &outcome_rect, { 255, 255, 255, 0 });
+									final = GenerateTextureFromText(GameProgress.FinalText, Franklin, &final_rect, { 255, 255, 255, 0 });
+									outcome_rect.x = Game.Results.x + Game.Results.w / 2 - outcome_rect.w / 2;
+									outcome_rect.y = Game.Results.y + Game.Results.h / 3 + outcome_rect.h / 2;
+									final_rect.x = Game.Results.x + Game.Results.w / 2 - final_rect.w / 2;
+									final_rect.y = Game.Results.y + Game.Results.h / 3 * 2 + final_rect.h / 2;
+									GameProgress.Queue = 2;
+									gameglasscopy.x = width - infwidth / 2 - (playheight / 12 * 11) / 29 * 19 / 2;
+									GameProgress.Round++;
+								}
+								_itoa_s(GameProgress.p2, points2, 10);
+								SDL_DestroyTexture(score2);
+								score2 = GenerateTextureFromText(points2, Franklin, &score2_rect, { 255, 255, 255, 0 });
+								score2_rect.x = Game.Score2.x + Game.Score2.w / 2 - score2_rect.w / 2;
+								score2_rect.y = Game.Score2.y + Game.Score2.h / 2 - score2_rect.h / 2;
+
+							}
+							else
+							{
+								strcpy_s(GameProgress.OutcomeText, u8"Ничья");
+								strcpy_s(GameProgress.FinalText, u8"Переигровка");
+								SDL_DestroyTexture(outcome);
+								SDL_DestroyTexture(final);
+								outcome = GenerateTextureFromText(GameProgress.OutcomeText, Franklin, &outcome_rect, { 255, 255, 255, 0 });
+								final = GenerateTextureFromText(GameProgress.FinalText, Franklin, &final_rect, { 255, 255, 255, 0 });
+								outcome_rect.x = Game.Results.x + Game.Results.w / 2 - outcome_rect.w / 2;
+								outcome_rect.y = Game.Results.y + Game.Results.h / 3 + outcome_rect.h / 2;
+								final_rect.x = Game.Results.x + Game.Results.w / 2 - final_rect.w / 2;
+								final_rect.y = Game.Results.y + Game.Results.h / 3 * 2 + final_rect.h / 2;
+								if (GameProgress.Queue == 1)
+								{
+									GameProgress.Queue = 2;
+									gameglasscopy.x = width - infwidth / 2 - (playheight / 12 * 11) / 29 * 19 / 2;
+								}
+								else if (GameProgress.Queue == 2)
+								{
+									GameProgress.Queue = 1;
+									gameglasscopy.x = infwidth / 2 - (playheight / 12 * 11) / 29 * 19 / 2;
+								}
+							}
 						}
 					}
 				}
+				//second skip button
 				if (ButtonClick(Game.SkipButton2, event.button.x, event.button.y) && event.button.button == SDL_BUTTON_LEFT && GameProgress.Queue == 2 && animation == false && GameProgress.LeadThrows != 0)
 				{	
-					if (GameProgress.LeadSwap < 2)
+					if (GameProgress.LeadSwap == 0)
 					{
 						GameProgress.Queue = 1;
 						gameglasscopy.x = infwidth / 2 - (playheight / 12 * 11) / 29 * 19 / 2;
 						GameProgress.LeadSwap++;
 						GameProgress.ThrowMax = GameProgress.LeadThrows;
+						GameProgress.LeadThrows = 0;
 					}
-					else if (GameProgress.LeadSwap == 2)
+					else if (GameProgress.LeadSwap == 1)
 					{
-						if (Compare[0] > Compare[1])
+						if (GameProgress.Round == 0)
 						{
-							strcpy_s(GameProgress.OutcomeText, u8"Победил");
-							strcpy_s(GameProgress.FinalText, GameProgress.Gambler1);
-							SDL_DestroyTexture(outcome);
-							SDL_DestroyTexture(final);
-							outcome = GenerateTextureFromText(GameProgress.OutcomeText, Franklin, &outcome_rect, { 255, 255, 255, 0 });
-							final = GenerateTextureFromText(GameProgress.FinalText, Franklin, &final_rect, { 255, 255, 255, 0 });
-							outcome_rect.x = Game.Results.x + Game.Results.w / 2 - outcome_rect.w / 2;
-							outcome_rect.y = Game.Results.y + Game.Results.h / 3 + outcome_rect.h / 2;
-							final_rect.x = Game.Results.x + Game.Results.w / 2 - final_rect.w / 2;
-							final_rect.y = Game.Results.y + Game.Results.h / 3 * 2 + final_rect.h / 2;
-							GameProgress.Queue = 1;
-							gameglasscopy.x = infwidth / 2 - (playheight / 12 * 11) / 29 * 19 / 2;
-							GameProgress.p1++;
-							_itoa_s(GameProgress.p1, points1, 10);
-							SDL_DestroyTexture(score1);
-							score1 = GenerateTextureFromText(points1, Franklin, &score1_rect, { 255, 255, 255, 0 });
-						}
-						else if (Compare[0] < Compare[1])
-						{
-							strcpy_s(GameProgress.OutcomeText, u8"Победил");
-							strcpy_s(GameProgress.FinalText, GameProgress.Gambler2);
-							SDL_DestroyTexture(outcome);
-							SDL_DestroyTexture(final);
-							outcome = GenerateTextureFromText(GameProgress.OutcomeText, Franklin, &outcome_rect, { 255, 255, 255, 0 });
-							final = GenerateTextureFromText(GameProgress.FinalText, Franklin, &final_rect, { 255, 255, 255, 0 });
-							outcome_rect.x = Game.Results.x + Game.Results.w / 2 - outcome_rect.w / 2;
-							outcome_rect.y = Game.Results.y + Game.Results.h / 3 + outcome_rect.h / 2;
-							final_rect.x = Game.Results.x + Game.Results.w / 2 - final_rect.w / 2;
-							final_rect.y = Game.Results.y + Game.Results.h / 3 * 2 + final_rect.h / 2;
-							GameProgress.Queue = 2;
-							gameglasscopy.x = width - infwidth / 2 - (playheight / 12 * 11) / 29 * 19 / 2;
-							GameProgress.p2++;
-							_itoa_s(GameProgress.p2, points2, 10);
-							SDL_DestroyTexture(score2);
-							score2 = GenerateTextureFromText(points2, Franklin, &score2_rect, { 255, 255, 255, 0 });
+							if (Compare[0] > Compare[1])
+							{
+								strcpy_s(GameProgress.OutcomeText, u8"Победил");
+								strcpy_s(GameProgress.FinalText, GameProgress.Gambler1);
+								SDL_DestroyTexture(outcome);
+								SDL_DestroyTexture(final);
+								outcome = GenerateTextureFromText(GameProgress.OutcomeText, Franklin, &outcome_rect, { 255, 255, 255, 0 });
+								final = GenerateTextureFromText(GameProgress.FinalText, Franklin, &final_rect, { 255, 255, 255, 0 });
+								outcome_rect.x = Game.Results.x + Game.Results.w / 2 - outcome_rect.w / 2;
+								outcome_rect.y = Game.Results.y + Game.Results.h / 3 + outcome_rect.h / 2;
+								final_rect.x = Game.Results.x + Game.Results.w / 2 - final_rect.w / 2;
+								final_rect.y = Game.Results.y + Game.Results.h / 3 * 2 + final_rect.h / 2;
+								GameProgress.Queue = 1;
+								gameglasscopy.x = infwidth / 2 - (playheight / 12 * 11) / 29 * 19 / 2;
+								GameProgress.Round++;
+							}
+							else if (Compare[0] < Compare[1])
+							{
+								strcpy_s(GameProgress.OutcomeText, u8"Победил");
+								strcpy_s(GameProgress.FinalText, GameProgress.Gambler2);
+								SDL_DestroyTexture(outcome);
+								SDL_DestroyTexture(final);
+								outcome = GenerateTextureFromText(GameProgress.OutcomeText, Franklin, &outcome_rect, { 255, 255, 255, 0 });
+								final = GenerateTextureFromText(GameProgress.FinalText, Franklin, &final_rect, { 255, 255, 255, 0 });
+								outcome_rect.x = Game.Results.x + Game.Results.w / 2 - outcome_rect.w / 2;
+								outcome_rect.y = Game.Results.y + Game.Results.h / 3 + outcome_rect.h / 2;
+								final_rect.x = Game.Results.x + Game.Results.w / 2 - final_rect.w / 2;
+								final_rect.y = Game.Results.y + Game.Results.h / 3 * 2 + final_rect.h / 2;
+								GameProgress.Queue = 2;
+								gameglasscopy.x = width - infwidth / 2 - (playheight / 12 * 11) / 29 * 19 / 2;
+								GameProgress.Round++;
+							}
+							else
+							{
+								strcpy_s(GameProgress.OutcomeText, u8"Ничья");
+								strcpy_s(GameProgress.FinalText, u8"Переигровка");
+								SDL_DestroyTexture(outcome);
+								SDL_DestroyTexture(final);
+								outcome = GenerateTextureFromText(GameProgress.OutcomeText, Franklin, &outcome_rect, { 255, 255, 255, 0 });
+								final = GenerateTextureFromText(GameProgress.FinalText, Franklin, &final_rect, { 255, 255, 255, 0 });
+								outcome_rect.x = Game.Results.x + Game.Results.w / 2 - outcome_rect.w / 2;
+								outcome_rect.y = Game.Results.y + Game.Results.h / 3 + outcome_rect.h / 2;
+								final_rect.x = Game.Results.x + Game.Results.w / 2 - final_rect.w / 2;
+								final_rect.y = Game.Results.y + Game.Results.h / 3 * 2 + final_rect.h / 2;
+								GameProgress.Queue = 1;
+								gameglasscopy.x = infwidth / 2 - (playheight / 12 * 11) / 29 * 19 / 2;
+							}
 						}
 						else
 						{
-							strcpy_s(GameProgress.OutcomeText, u8"Ничья");
-							strcpy_s(GameProgress.FinalText, u8"Переигровка");
-							SDL_DestroyTexture(outcome);
-							SDL_DestroyTexture(final);
-							outcome = GenerateTextureFromText(GameProgress.OutcomeText, Franklin, &outcome_rect, { 255, 255, 255, 0 });
-							final = GenerateTextureFromText(GameProgress.FinalText, Franklin, &final_rect, { 255, 255, 255, 0 });
-							outcome_rect.x = Game.Results.x + Game.Results.w / 2 - outcome_rect.w / 2;
-							outcome_rect.y = Game.Results.y + Game.Results.h / 3 + outcome_rect.h / 2;
-							final_rect.x = Game.Results.x + Game.Results.w / 2 - final_rect.w / 2;
-							final_rect.y = Game.Results.y + Game.Results.h / 3 * 2 + final_rect.h / 2;
-							GameProgress.Queue = 1;
-							gameglasscopy.x = infwidth / 2 - (playheight / 12 * 11) / 29 * 19 / 2;
+							if (Compare[0] > Compare[1])
+							{
+								GameProgress.p1++;
+								if (GameProgress.p1 == 3)
+								{
+									strcpy_s(phasetext, GameProgress.Gambler1);
+									strcpy_s(GameProgress.OutcomeText, u8"Одержал победу");
+									strcpy_s(GameProgress.FinalText, u8"со счетом ");
+									char finaltext[ams];
+									char h[dq];
+									_itoa_s(GameProgress.p1, h, 10);
+									strcat_s(finaltext, h);
+									*h = ':';
+									_itoa_s(GameProgress.p2, h, 10);
+									strcat_s(finaltext, h);
+									strcpy_s(GameProgress.FinalText, finaltext);
+									SDL_DestroyTexture(phase);
+									SDL_DestroyTexture(outcome);
+									SDL_DestroyTexture(final);
+									phase = GenerateTextureFromText(GameProgress.FinalText, Franklin, &phase_rect, { 255, 255, 255, 0 });
+									outcome = GenerateTextureFromText(GameProgress.OutcomeText, Franklin, &outcome_rect, { 255, 255, 255, 0 });
+									final = GenerateTextureFromText(GameProgress.FinalText, Franklin, &final_rect, { 255, 255, 255, 0 });
+									phase_rect.x = Game.Results.x + Game.Results.w / 2 - phase_rect.w / 2;
+									phase_rect.y = Game.Results.y - phase_rect.h / 2;
+									outcome_rect.x = Game.Results.x + Game.Results.w / 2 - outcome_rect.w / 2;
+									outcome_rect.y = Game.Results.y + Game.Results.h / 3 + outcome_rect.h / 2;
+									final_rect.x = Game.Results.x + Game.Results.w / 2 - final_rect.w / 2;
+									final_rect.y = Game.Results.y + Game.Results.h / 3 * 2 + final_rect.h / 2;
+									GameProgress.GameStatus = 0;
+								}
+								else
+								{
+									strcpy_s(GameProgress.OutcomeText, u8"Победил");
+									strcpy_s(GameProgress.FinalText, GameProgress.Gambler1);
+									SDL_DestroyTexture(outcome);
+									SDL_DestroyTexture(final);
+									outcome = GenerateTextureFromText(GameProgress.OutcomeText, Franklin, &outcome_rect, { 255, 255, 255, 0 });
+									final = GenerateTextureFromText(GameProgress.FinalText, Franklin, &final_rect, { 255, 255, 255, 0 });
+									outcome_rect.x = Game.Results.x + Game.Results.w / 2 - outcome_rect.w / 2;
+									outcome_rect.y = Game.Results.y + Game.Results.h / 3 + outcome_rect.h / 2;
+									final_rect.x = Game.Results.x + Game.Results.w / 2 - final_rect.w / 2;
+									final_rect.y = Game.Results.y + Game.Results.h / 3 * 2 + final_rect.h / 2;
+									GameProgress.Queue = 1;
+									gameglasscopy.x = infwidth / 2 - (playheight / 12 * 11) / 29 * 19 / 2;
+									GameProgress.Round++;
+								}
+								_itoa_s(GameProgress.p1, points1, 10);
+								SDL_DestroyTexture(score1);
+								score1 = GenerateTextureFromText(points1, Franklin, &score1_rect, { 255, 255, 255, 0 });
+								score1_rect.x = Game.Score1.x + Game.Score1.w / 2 - score1_rect.w / 2;
+								score1_rect.y = Game.Score1.y + Game.Score1.h / 2 - score1_rect.h / 2;
+							}
+							else if (Compare[0] < Compare[1])
+							{
+								GameProgress.p2++;
+								if (GameProgress.p2 == 3)
+								{
+									strcpy_s(phasetext, GameProgress.Gambler2);
+									strcpy_s(GameProgress.OutcomeText, u8"Одержал победу");
+									strcpy_s(GameProgress.FinalText, u8"со счетом ");
+									char finaltext[ams];
+									char h[dq];
+									_itoa_s(GameProgress.p2, h, 10);
+									strcat_s(finaltext, h);
+									*h = ':';
+									_itoa_s(GameProgress.p1, h, 10);
+									strcat_s(finaltext, h);
+									strcpy_s(GameProgress.FinalText, finaltext);
+									SDL_DestroyTexture(phase);
+									SDL_DestroyTexture(outcome);
+									SDL_DestroyTexture(final);
+									phase = GenerateTextureFromText(GameProgress.FinalText, Franklin, &phase_rect, { 255, 255, 255, 0 });
+									outcome = GenerateTextureFromText(GameProgress.OutcomeText, Franklin, &outcome_rect, { 255, 255, 255, 0 });
+									final = GenerateTextureFromText(GameProgress.FinalText, Franklin, &final_rect, { 255, 255, 255, 0 });
+									phase_rect.x = Game.Results.x + Game.Results.w / 2 - phase_rect.w / 2;
+									phase_rect.y = Game.Results.y - phase_rect.h / 2;
+									outcome_rect.x = Game.Results.x + Game.Results.w / 2 - outcome_rect.w / 2;
+									outcome_rect.y = Game.Results.y + Game.Results.h / 3 + outcome_rect.h / 2;
+									final_rect.x = Game.Results.x + Game.Results.w / 2 - final_rect.w / 2;
+									final_rect.y = Game.Results.y + Game.Results.h / 3 * 2 + final_rect.h / 2;
+									GameProgress.GameStatus = 0;
+								}
+								else
+								{
+									strcpy_s(GameProgress.OutcomeText, u8"Победил");
+									strcpy_s(GameProgress.FinalText, GameProgress.Gambler2);
+									SDL_DestroyTexture(outcome);
+									SDL_DestroyTexture(final);
+									outcome = GenerateTextureFromText(GameProgress.OutcomeText, Franklin, &outcome_rect, { 255, 255, 255, 0 });
+									final = GenerateTextureFromText(GameProgress.FinalText, Franklin, &final_rect, { 255, 255, 255, 0 });
+									outcome_rect.x = Game.Results.x + Game.Results.w / 2 - outcome_rect.w / 2;
+									outcome_rect.y = Game.Results.y + Game.Results.h / 3 + outcome_rect.h / 2;
+									final_rect.x = Game.Results.x + Game.Results.w / 2 - final_rect.w / 2;
+									final_rect.y = Game.Results.y + Game.Results.h / 3 * 2 + final_rect.h / 2;
+									GameProgress.Queue = 2;
+									gameglasscopy.x = width - infwidth / 2 - (playheight / 12 * 11) / 29 * 19 / 2;
+									GameProgress.Round++;
+								}
+								_itoa_s(GameProgress.p2, points2, 10);
+								SDL_DestroyTexture(score2);
+								score2 = GenerateTextureFromText(points2, Franklin, &score2_rect, { 255, 255, 255, 0 });
+								score2_rect.x = Game.Score2.x + Game.Score2.w / 2 - score2_rect.w / 2;
+								score2_rect.y = Game.Score2.y + Game.Score2.h / 2 - score2_rect.h / 2;
+
+							}
+							else
+							{
+								strcpy_s(GameProgress.OutcomeText, u8"Ничья");
+								strcpy_s(GameProgress.FinalText, u8"Переигровка");
+								SDL_DestroyTexture(outcome);
+								SDL_DestroyTexture(final);
+								outcome = GenerateTextureFromText(GameProgress.OutcomeText, Franklin, &outcome_rect, { 255, 255, 255, 0 });
+								final = GenerateTextureFromText(GameProgress.FinalText, Franklin, &final_rect, { 255, 255, 255, 0 });
+								outcome_rect.x = Game.Results.x + Game.Results.w / 2 - outcome_rect.w / 2;
+								outcome_rect.y = Game.Results.y + Game.Results.h / 3 + outcome_rect.h / 2;
+								final_rect.x = Game.Results.x + Game.Results.w / 2 - final_rect.w / 2;
+								final_rect.y = Game.Results.y + Game.Results.h / 3 * 2 + final_rect.h / 2;
+								if (GameProgress.Queue == 1)
+								{
+									GameProgress.Queue = 2;
+									gameglasscopy.x = width - infwidth / 2 - (playheight / 12 * 11) / 29 * 19 / 2;
+								}
+								else if (GameProgress.Queue == 2)
+								{
+									GameProgress.Queue = 1;
+									gameglasscopy.x = infwidth / 2 - (playheight / 12 * 11) / 29 * 19 / 2;
+								}
+							}
 						}
 					}
 				}
@@ -1142,68 +1427,108 @@ void Play(int& mode, Proportions window, Zones Game, Elements& GameProgress, App
 		//==============================================================================
 		//логика
 		
+		//if (animation == false)
+		//{
+		//	if (GameProgress.ThrowMax == 0)
+		//	{
+		//		if (GameProgress.LeadSwap == 2)
+		//		{
+		//			if (Compare[0] > Compare[1])
+		//			{
+		//				strcpy_s(GameProgress.OutcomeText, u8"Победил");
+		//				strcpy_s(GameProgress.FinalText, GameProgress.Gambler1);
+		//				SDL_DestroyTexture(outcome);
+		//				SDL_DestroyTexture(final);
+		//				outcome = GenerateTextureFromText(GameProgress.OutcomeText, Franklin, &outcome_rect, { 255, 255, 255, 0 });
+		//				final = GenerateTextureFromText(GameProgress.FinalText, Franklin, &final_rect, { 255, 255, 255, 0 });
+		//				outcome_rect.x = Game.Results.x + Game.Results.w / 2 - outcome_rect.w / 2;
+		//				outcome_rect.y = Game.Results.y + Game.Results.h / 3 + outcome_rect.h / 2;
+		//				final_rect.x = Game.Results.x + Game.Results.w / 2 - final_rect.w / 2;
+		//				final_rect.y = Game.Results.y + Game.Results.h / 3 * 2 + final_rect.h / 2;
+		//				GameProgress.Queue = 1;
+		//				gameglasscopy.x = infwidth / 2 - (playheight / 12 * 11) / 29 * 19 / 2;
+		//				GameProgress.p1++;
+		//				_itoa_s(GameProgress.p1, points1, 10);
+		//				SDL_DestroyTexture(score1);
+		//				score1 = GenerateTextureFromText(points1, Franklin, &score1_rect, { 255, 255, 255, 0 });
+		//			}
+		//			else if (Compare[0] < Compare[1])
+		//			{
+		//				strcpy_s(GameProgress.OutcomeText, u8"Победил");
+		//				strcpy_s(GameProgress.FinalText, GameProgress.Gambler2);
+		//				SDL_DestroyTexture(outcome);
+		//				SDL_DestroyTexture(final);
+		//				outcome = GenerateTextureFromText(GameProgress.OutcomeText, Franklin, &outcome_rect, { 255, 255, 255, 0 });
+		//				final = GenerateTextureFromText(GameProgress.FinalText, Franklin, &final_rect, { 255, 255, 255, 0 });
+		//				outcome_rect.x = Game.Results.x + Game.Results.w / 2 - outcome_rect.w / 2;
+		//				outcome_rect.y = Game.Results.y + Game.Results.h / 3 + outcome_rect.h / 2;
+		//				final_rect.x = Game.Results.x + Game.Results.w / 2 - final_rect.w / 2;
+		//				final_rect.y = Game.Results.y + Game.Results.h / 3 * 2 + final_rect.h / 2;
+		//				GameProgress.Queue = 2;
+		//				gameglasscopy.x = width - infwidth / 2 - (playheight / 12 * 11) / 29 * 19 / 2;
+		//				GameProgress.p2++;
+		//				_itoa_s(GameProgress.p2, points2, 10);
+		//				SDL_DestroyTexture(score2);
+		//				score2 = GenerateTextureFromText(points2, Franklin, &score2_rect, { 255, 255, 255, 0 });
+		//			}
+		//			else
+		//			{
+		//				strcpy_s(GameProgress.OutcomeText, u8"Ничья");
+		//				strcpy_s(GameProgress.FinalText, u8"Переигровка");
+		//				SDL_DestroyTexture(outcome);
+		//				SDL_DestroyTexture(final);
+		//				outcome = GenerateTextureFromText(GameProgress.OutcomeText, Franklin, &outcome_rect, { 255, 255, 255, 0 });
+		//				final = GenerateTextureFromText(GameProgress.FinalText, Franklin, &final_rect, { 255, 255, 255, 0 });
+		//				outcome_rect.x = Game.Results.x + Game.Results.w / 2 - outcome_rect.w / 2;
+		//				outcome_rect.y = Game.Results.y + Game.Results.h / 3 + outcome_rect.h / 2;
+		//				final_rect.x = Game.Results.x + Game.Results.w / 2 - final_rect.w / 2;
+		//				final_rect.y = Game.Results.y + Game.Results.h / 3 * 2 + final_rect.h / 2;
+		//				GameProgress.Queue = 1;
+		//				gameglasscopy.x = infwidth / 2 - (playheight / 12 * 11) / 29 * 19 / 2;
+		//			}
+		//			/*GameProgress.ThrowMax = 3;
+		//			GameProgress.LeadSwap = 0;
+		//			GameProgress.LeadThrows = 0;
+		//			if (GameProgress.Queue == 1)
+		//			{
+		//				GameProgress.Queue = 2;
+		//				gameglasscopy.x = width - infwidth / 2 - (playheight / 12 * 11) / 29 * 19 / 2;
+		//			}
+		//			else if (GameProgress.Queue == 2)
+		//			{
+		//				GameProgress.Queue = 1;
+		//				gameglasscopy.x = infwidth / 2 - (playheight / 12 * 11) / 29 * 19 / 2;
+		//			}
+		//			GameProgress.Round++;*/
+		//		}
+		//		else
+		//		{
+		//			GameProgress.LeadSwap++;
+		//			if (GameProgress.Queue == 1 && GameProgress.LeadSwap == 1)
+		//			{
+		//				GameProgress.Queue = 2;
+		//				GameProgress.ThrowMax = GameProgress.LeadThrows;
+		//				GameProgress.LeadThrows = 0;
+		//				gameglasscopy.x = width - infwidth / 2 - (playheight / 12 * 11) / 29 * 19 / 2;
+		//			}
+		//			else if (GameProgress.Queue == 2 && GameProgress.LeadSwap == 1)
+		//			{
+		//				GameProgress.Queue = 1;
+		//				GameProgress.ThrowMax = GameProgress.LeadThrows;
+		//				GameProgress.LeadThrows = 0;
+		//				gameglasscopy.x = infwidth / 2 - (playheight / 12 * 11) / 29 * 19 / 2;
+		//			}
+		//		}
+
+		//	}
+		//}
+
 		if (animation == false)
 		{
-			if (GameProgress.ThrowMax == 0)
+			if (GameProgress.LeadSwap == 0)
 			{
-				if (GameProgress.LeadSwap == 2)
+				if (GameProgress.ThrowMax == 0)
 				{
-					if (Compare[0] > Compare[1])
-					{
-						strcpy_s(GameProgress.OutcomeText, u8"Победил");
-						strcpy_s(GameProgress.FinalText, GameProgress.Gambler1);
-						SDL_DestroyTexture(outcome);
-						SDL_DestroyTexture(final);
-						outcome = GenerateTextureFromText(GameProgress.OutcomeText, Franklin, &outcome_rect, { 255, 255, 255, 0 });
-						final = GenerateTextureFromText(GameProgress.FinalText, Franklin, &final_rect, { 255, 255, 255, 0 });
-						outcome_rect.x = Game.Results.x + Game.Results.w / 2 - outcome_rect.w / 2;
-						outcome_rect.y = Game.Results.y + Game.Results.h / 3 + outcome_rect.h / 2;
-						final_rect.x = Game.Results.x + Game.Results.w / 2 - final_rect.w / 2;
-						final_rect.y = Game.Results.y + Game.Results.h / 3 * 2 + final_rect.h / 2;
-						GameProgress.Queue = 1;
-						gameglasscopy.x = infwidth / 2 - (playheight / 12 * 11) / 29 * 19 / 2;
-						GameProgress.p1++;
-						_itoa_s(GameProgress.p1, points1, 10);
-						SDL_DestroyTexture(score1);
-						score1 = GenerateTextureFromText(points1, Franklin, &score1_rect, { 255, 255, 255, 0 });
-					}
-					else if (Compare[0] < Compare[1])
-					{
-						strcpy_s(GameProgress.OutcomeText, u8"Победил");
-						strcpy_s(GameProgress.FinalText, GameProgress.Gambler2);
-						SDL_DestroyTexture(outcome);
-						SDL_DestroyTexture(final);
-						outcome = GenerateTextureFromText(GameProgress.OutcomeText, Franklin, &outcome_rect, { 255, 255, 255, 0 });
-						final = GenerateTextureFromText(GameProgress.FinalText, Franklin, &final_rect, { 255, 255, 255, 0 });
-						outcome_rect.x = Game.Results.x + Game.Results.w / 2 - outcome_rect.w / 2;
-						outcome_rect.y = Game.Results.y + Game.Results.h / 3 + outcome_rect.h / 2;
-						final_rect.x = Game.Results.x + Game.Results.w / 2 - final_rect.w / 2;
-						final_rect.y = Game.Results.y + Game.Results.h / 3 * 2 + final_rect.h / 2;
-						GameProgress.Queue = 2;
-						gameglasscopy.x = width - infwidth / 2 - (playheight / 12 * 11) / 29 * 19 / 2;
-						GameProgress.p2++;
-						_itoa_s(GameProgress.p2, points2, 10);
-						SDL_DestroyTexture(score2);
-						score2 = GenerateTextureFromText(points2, Franklin, &score2_rect, { 255, 255, 255, 0 });
-					}
-					else
-					{
-						strcpy_s(GameProgress.OutcomeText, u8"Ничья");
-						strcpy_s(GameProgress.FinalText, u8"Переигровка");
-						SDL_DestroyTexture(outcome);
-						SDL_DestroyTexture(final);
-						outcome = GenerateTextureFromText(GameProgress.OutcomeText, Franklin, &outcome_rect, { 255, 255, 255, 0 });
-						final = GenerateTextureFromText(GameProgress.FinalText, Franklin, &final_rect, { 255, 255, 255, 0 });
-						outcome_rect.x = Game.Results.x + Game.Results.w / 2 - outcome_rect.w / 2;
-						outcome_rect.y = Game.Results.y + Game.Results.h / 3 + outcome_rect.h / 2;
-						final_rect.x = Game.Results.x + Game.Results.w / 2 - final_rect.w / 2;
-						final_rect.y = Game.Results.y + Game.Results.h / 3 * 2 + final_rect.h / 2;
-						GameProgress.Queue = 1;
-						gameglasscopy.x = infwidth / 2 - (playheight / 12 * 11) / 29 * 19 / 2;
-					}
-					/*GameProgress.ThrowMax = 3;
-					GameProgress.LeadSwap = 0;
-					GameProgress.LeadThrows = 0;
 					if (GameProgress.Queue == 1)
 					{
 						GameProgress.Queue = 2;
@@ -1214,27 +1539,197 @@ void Play(int& mode, Proportions window, Zones Game, Elements& GameProgress, App
 						GameProgress.Queue = 1;
 						gameglasscopy.x = infwidth / 2 - (playheight / 12 * 11) / 29 * 19 / 2;
 					}
-					GameProgress.Round++;*/
-				}
-				else
-				{
 					GameProgress.LeadSwap++;
-					if (GameProgress.Queue == 1 && GameProgress.LeadSwap == 1)
+					GameProgress.ThrowMax = GameProgress.LeadThrows;
+					GameProgress.LeadThrows = 0;
+				}
+			}
+			else if (GameProgress.LeadSwap == 1)
+			{
+				if (GameProgress.ThrowMax == 0)
+				{
+					if (GameProgress.Round == 0)
 					{
-						GameProgress.Queue = 2;
-						GameProgress.ThrowMax = GameProgress.LeadThrows;
-						GameProgress.LeadThrows = 0;
-						gameglasscopy.x = width - infwidth / 2 - (playheight / 12 * 11) / 29 * 19 / 2;
+						if (Compare[0] > Compare[1])
+						{
+							strcpy_s(GameProgress.OutcomeText, u8"Победил");
+							strcpy_s(GameProgress.FinalText, GameProgress.Gambler1);
+							SDL_DestroyTexture(outcome);
+							SDL_DestroyTexture(final);
+							outcome = GenerateTextureFromText(GameProgress.OutcomeText, Franklin, &outcome_rect, { 255, 255, 255, 0 });
+							final = GenerateTextureFromText(GameProgress.FinalText, Franklin, &final_rect, { 255, 255, 255, 0 });
+							outcome_rect.x = Game.Results.x + Game.Results.w / 2 - outcome_rect.w / 2;
+							outcome_rect.y = Game.Results.y + Game.Results.h / 3 + outcome_rect.h / 2;
+							final_rect.x = Game.Results.x + Game.Results.w / 2 - final_rect.w / 2;
+							final_rect.y = Game.Results.y + Game.Results.h / 3 * 2 + final_rect.h / 2;
+							GameProgress.Queue = 1;
+							gameglasscopy.x = infwidth / 2 - (playheight / 12 * 11) / 29 * 19 / 2;
+							//GameProgress.Round++;
+						}
+						else if (Compare[0] < Compare[1])
+						{
+							strcpy_s(GameProgress.OutcomeText, u8"Победил");
+							strcpy_s(GameProgress.FinalText, GameProgress.Gambler2);
+							SDL_DestroyTexture(outcome);
+							SDL_DestroyTexture(final);
+							outcome = GenerateTextureFromText(GameProgress.OutcomeText, Franklin, &outcome_rect, { 255, 255, 255, 0 });
+							final = GenerateTextureFromText(GameProgress.FinalText, Franklin, &final_rect, { 255, 255, 255, 0 });
+							outcome_rect.x = Game.Results.x + Game.Results.w / 2 - outcome_rect.w / 2;
+							outcome_rect.y = Game.Results.y + Game.Results.h / 3 + outcome_rect.h / 2;
+							final_rect.x = Game.Results.x + Game.Results.w / 2 - final_rect.w / 2;
+							final_rect.y = Game.Results.y + Game.Results.h / 3 * 2 + final_rect.h / 2;
+							GameProgress.Queue = 2;
+							gameglasscopy.x = width - infwidth / 2 - (playheight / 12 * 11) / 29 * 19 / 2;
+							//GameProgress.Round++;
+						}
+						else
+						{
+							strcpy_s(GameProgress.OutcomeText, u8"Ничья");
+							strcpy_s(GameProgress.FinalText, u8"Переигровка");
+							SDL_DestroyTexture(outcome);
+							SDL_DestroyTexture(final);
+							outcome = GenerateTextureFromText(GameProgress.OutcomeText, Franklin, &outcome_rect, { 255, 255, 255, 0 });
+							final = GenerateTextureFromText(GameProgress.FinalText, Franklin, &final_rect, { 255, 255, 255, 0 });
+							outcome_rect.x = Game.Results.x + Game.Results.w / 2 - outcome_rect.w / 2;
+							outcome_rect.y = Game.Results.y + Game.Results.h / 3 + outcome_rect.h / 2;
+							final_rect.x = Game.Results.x + Game.Results.w / 2 - final_rect.w / 2;
+							final_rect.y = Game.Results.y + Game.Results.h / 3 * 2 + final_rect.h / 2;
+							GameProgress.Queue = 1;
+							gameglasscopy.x = infwidth / 2 - (playheight / 12 * 11) / 29 * 19 / 2;
+						}
 					}
-					else if (GameProgress.Queue == 2 && GameProgress.LeadSwap == 1)
+					else
 					{
-						GameProgress.Queue = 1;
-						GameProgress.ThrowMax = GameProgress.LeadThrows;
-						GameProgress.LeadThrows = 0;
-						gameglasscopy.x = infwidth / 2 - (playheight / 12 * 11) / 29 * 19 / 2;
+						if (Compare[0] > Compare[1])
+						{
+							GameProgress.p1++;
+							if (GameProgress.p1 == 3)
+							{
+								strcpy_s(phasetext, GameProgress.Gambler1);
+								strcpy_s(GameProgress.OutcomeText, u8"Одержал победу");
+								strcpy_s(GameProgress.FinalText, u8"со счетом ");
+								/*char finaltext[ams];
+								char h[dq];
+								_itoa_s(GameProgress.p1, h, 10);
+								strcat_s(finaltext, h);
+								*h = ':';
+								_itoa_s(GameProgress.p2, h, 10);
+								strcat_s(finaltext, h);
+								strcpy_s(GameProgress.FinalText, finaltext);*/
+								SDL_DestroyTexture(phase);
+								SDL_DestroyTexture(outcome);
+								SDL_DestroyTexture(final);
+								phase = GenerateTextureFromText(GameProgress.FinalText, Franklin, &phase_rect, { 255, 255, 255, 0 });
+								outcome = GenerateTextureFromText(GameProgress.OutcomeText, Franklin, &outcome_rect, { 255, 255, 255, 0 });
+								final = GenerateTextureFromText(GameProgress.FinalText, Franklin, &final_rect, { 255, 255, 255, 0 });
+								phase_rect.x = Game.Results.x + Game.Results.w / 2 - phase_rect.w / 2;
+								phase_rect.y = Game.Results.y - phase_rect.h / 2;
+								outcome_rect.x = Game.Results.x + Game.Results.w / 2 - outcome_rect.w / 2;
+								outcome_rect.y = Game.Results.y + Game.Results.h / 3 + outcome_rect.h / 2;
+								final_rect.x = Game.Results.x + Game.Results.w / 2 - final_rect.w / 2;
+								final_rect.y = Game.Results.y + Game.Results.h / 3 * 2 + final_rect.h / 2;
+								GameProgress.GameStatus = 0;
+							}
+							else
+							{
+								strcpy_s(GameProgress.OutcomeText, u8"Победил");
+								strcpy_s(GameProgress.FinalText, GameProgress.Gambler1);
+								SDL_DestroyTexture(outcome);
+								SDL_DestroyTexture(final);
+								outcome = GenerateTextureFromText(GameProgress.OutcomeText, Franklin, &outcome_rect, { 255, 255, 255, 0 });
+								final = GenerateTextureFromText(GameProgress.FinalText, Franklin, &final_rect, { 255, 255, 255, 0 });
+								outcome_rect.x = Game.Results.x + Game.Results.w / 2 - outcome_rect.w / 2;
+								outcome_rect.y = Game.Results.y + Game.Results.h / 3 + outcome_rect.h / 2;
+								final_rect.x = Game.Results.x + Game.Results.w / 2 - final_rect.w / 2;
+								final_rect.y = Game.Results.y + Game.Results.h / 3 * 2 + final_rect.h / 2;
+								GameProgress.Queue = 1;
+								gameglasscopy.x = infwidth / 2 - (playheight / 12 * 11) / 29 * 19 / 2;
+								GameProgress.Round++;
+							}
+							_itoa_s(GameProgress.p1, points1, 10);
+							SDL_DestroyTexture(score1);
+							score1 = GenerateTextureFromText(points1, Franklin, &score1_rect, { 255, 255, 255, 0 });
+							score1_rect.x = Game.Score1.x + Game.Score1.w / 2 - score1_rect.w / 2;
+							score1_rect.y = Game.Score1.y + Game.Score1.h / 2 - score1_rect.h / 2;
+						}
+						else if (Compare[0] < Compare[1])
+						{
+							GameProgress.p2++;
+							if (GameProgress.p2 == 3)
+							{
+								strcpy_s(phasetext, GameProgress.Gambler2);
+								strcpy_s(GameProgress.OutcomeText, u8"Одержал победу");
+								strcpy_s(GameProgress.FinalText, u8"со счетом ");
+								/*char finaltext[ams];
+								char h[dq];
+								_itoa_s(GameProgress.p2, h, 10);
+								strcat_s(finaltext, h);
+								*h = ':';
+								_itoa_s(GameProgress.p1, h, 10);
+								strcat_s(finaltext, h);
+								strcpy_s(GameProgress.FinalText, finaltext);*/
+								SDL_DestroyTexture(phase);
+								SDL_DestroyTexture(outcome);
+								SDL_DestroyTexture(final);
+								phase = GenerateTextureFromText(GameProgress.FinalText, Franklin, &phase_rect, { 255, 255, 255, 0 });
+								outcome = GenerateTextureFromText(GameProgress.OutcomeText, Franklin, &outcome_rect, { 255, 255, 255, 0 });
+								final = GenerateTextureFromText(GameProgress.FinalText, Franklin, &final_rect, { 255, 255, 255, 0 });
+								phase_rect.x = Game.Results.x + Game.Results.w / 2 - phase_rect.w / 2;
+								phase_rect.y = Game.Results.y - phase_rect.h / 2;
+								outcome_rect.x = Game.Results.x + Game.Results.w / 2 - outcome_rect.w / 2;
+								outcome_rect.y = Game.Results.y + Game.Results.h / 3 + outcome_rect.h / 2;
+								final_rect.x = Game.Results.x + Game.Results.w / 2 - final_rect.w / 2;
+								final_rect.y = Game.Results.y + Game.Results.h / 3 * 2 + final_rect.h / 2;
+								GameProgress.GameStatus = 0;
+							}
+							else
+							{
+								strcpy_s(GameProgress.OutcomeText, u8"Победил");
+								strcpy_s(GameProgress.FinalText, GameProgress.Gambler2);
+								SDL_DestroyTexture(outcome);
+								SDL_DestroyTexture(final);
+								outcome = GenerateTextureFromText(GameProgress.OutcomeText, Franklin, &outcome_rect, { 255, 255, 255, 0 });
+								final = GenerateTextureFromText(GameProgress.FinalText, Franklin, &final_rect, { 255, 255, 255, 0 });
+								outcome_rect.x = Game.Results.x + Game.Results.w / 2 - outcome_rect.w / 2;
+								outcome_rect.y = Game.Results.y + Game.Results.h / 3 + outcome_rect.h / 2;
+								final_rect.x = Game.Results.x + Game.Results.w / 2 - final_rect.w / 2;
+								final_rect.y = Game.Results.y + Game.Results.h / 3 * 2 + final_rect.h / 2;
+								GameProgress.Queue = 2;
+								gameglasscopy.x = width - infwidth / 2 - (playheight / 12 * 11) / 29 * 19 / 2;
+								GameProgress.Round++;
+							}
+							_itoa_s(GameProgress.p2, points2, 10);
+							SDL_DestroyTexture(score2);
+							score2 = GenerateTextureFromText(points2, Franklin, &score2_rect, { 255, 255, 255, 0 });							
+							score2_rect.x = Game.Score2.x + Game.Score2.w / 2 - score2_rect.w / 2;
+							score2_rect.y = Game.Score2.y + Game.Score2.h / 2 - score2_rect.h / 2;
+							
+						}
+						else
+						{
+							strcpy_s(GameProgress.OutcomeText, u8"Ничья");
+							strcpy_s(GameProgress.FinalText, u8"Переигровка");
+							SDL_DestroyTexture(outcome);
+							SDL_DestroyTexture(final);
+							outcome = GenerateTextureFromText(GameProgress.OutcomeText, Franklin, &outcome_rect, { 255, 255, 255, 0 });
+							final = GenerateTextureFromText(GameProgress.FinalText, Franklin, &final_rect, { 255, 255, 255, 0 });
+							outcome_rect.x = Game.Results.x + Game.Results.w / 2 - outcome_rect.w / 2;
+							outcome_rect.y = Game.Results.y + Game.Results.h / 3 + outcome_rect.h / 2;
+							final_rect.x = Game.Results.x + Game.Results.w / 2 - final_rect.w / 2;
+							final_rect.y = Game.Results.y + Game.Results.h / 3 * 2 + final_rect.h / 2;
+							if (GameProgress.Queue == 1)
+							{
+								GameProgress.Queue = 2;
+								gameglasscopy.x = width - infwidth / 2 - (playheight / 12 * 11) / 29 * 19 / 2;
+							}
+							else if (GameProgress.Queue == 2)
+							{
+								GameProgress.Queue = 1;
+								gameglasscopy.x = infwidth / 2 - (playheight / 12 * 11) / 29 * 19 / 2;
+							}
+						}
 					}
 				}
-
 			}
 		}
 

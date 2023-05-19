@@ -28,9 +28,6 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <Image Include="images\1.png">
-      <Filter>Файлы ресурсов</Filter>
-    </Image>
     <Image Include="images\glass.png">
       <Filter>Файлы ресурсов</Filter>
     </Image>

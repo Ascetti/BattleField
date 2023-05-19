@@ -144,7 +144,6 @@
     <ClInclude Include="general.h" />
   </ItemGroup>
   <ItemGroup>
-    <Image Include="images\1.png" />
     <Image Include="images\glass.png" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

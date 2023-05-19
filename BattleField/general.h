@@ -17,8 +17,11 @@
 #define sw 13
 // heihgt
 #define sh 5
+//red for greenlines
 #define r 5
+//green for greenlines
 #define g 255
+//blue for greenlines
 #define b 184
 //array max size
 #define ams 50
