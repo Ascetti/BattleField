@@ -1,10 +1,10 @@
 #include "general.h"
+#include "GameCore.h"
 
 SDL_Window* win = NULL;
 SDL_Renderer* ren = NULL;
 Mix_Chunk* sound = NULL;
 Mix_Music* fon = NULL;
-
 
 void Init(Proportions &window)
 {
@@ -50,7 +50,7 @@ void Init(Proportions &window)
 	window.width = dm.w;
 	window.height = dm.h;
 
-	win = SDL_CreateWindow(u8"Че?!", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, window.width, window.width, SDL_WINDOW_SHOWN | SDL_WINDOW_MAXIMIZED);
+	win = SDL_CreateWindow(u8"Че?!", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, window.width, window.width, SDL_WINDOW_SHOWN | SDL_WINDOW_FULLSCREEN_DESKTOP);
 	if (win == NULL)
 	{
 		cout << "Couldn't create Window! Error: " << SDL_GetError();
@@ -87,81 +87,7 @@ void DeInit(int error)
 	exit(0);
 }
 
-void work()
-{
-	Proportions window;
-	Appearance Page;
-	Zones Game;
-	Elements GameProgress;
-	Control SettingsData;
-
-	ReadGameProgressDataFile(GameProgress);
-
-	PrintGameProgressDataFile(GameProgress);
-
-	if (GameProgress.GameStatus == 0)
-	{
-		strcpy_s(GameProgress.Gambler1, "Player 1");
-		strcpy_s(GameProgress.Gambler2, "Player 2");
-	}
-
-	Init(window);
-
-	cout << GameProgress.GameStatus << endl;
-	cout << GameProgress.Round << endl;
-	cout << GameProgress.OutcomeText << endl;
-	cout << GameProgress.FinalText << endl;
-	cout << GameProgress.p1 << endl;
-	cout << GameProgress.p2 << endl;
-	cout << GameProgress.Queue << endl;
-	cout << GameProgress.Gambler1 << endl;
- 	cout << GameProgress.Gambler2 << endl;
-	cout << GameProgress.Combo1 << endl;
-	cout << GameProgress.Combo2 << endl;
-	cout << GameProgress.ThrowMax << endl;
-	cout << GameProgress.LeadSwap << endl;
-	cout << GameProgress.LeadThrows << endl;
-	for (int i = 0; i < dq; i++)
-		cout << GameProgress.DiceValues[i]  << " ";
-
-
-	PageLayout(Page, window, Game);
-
-	int mode = 1; 
-	//bool flag = false;
-	while (mode != 0)
-	{
-		switch (mode)
-		{
-		case 1:
-			MainMenu(mode, Page, window);
-			break;
-		case 2:
-			ExitMenu(mode, Page, window);
-			break;
-		case 3:
-			Rules(mode, Page, window);
-			break;
-		case 4:
-			Settings(mode, Page, window);
-			break;
-		case 5:
-			//PauseMenu(mode, Page, window);
-			break;
-		case 6:
-			Identification(mode, Page, window, GameProgress.Gambler1, GameProgress.Gambler2);
-			break;
-		case 7:
-			Play(mode, window, Game, GameProgress, Page);
-			break;
-		}
-	}
-
-	
-	DeInit(0);
-}
-
-void MainMenu(int& mode, Appearance Page, Proportions window)
+void MainMenu(int& mode, Appearance Page, Proportions window, bool &previous)
 {
 	TTF_Font* Franklin = TTF_OpenFont("fonts\\Franklin.ttf", Page.HeadingFontSize);
 	if (Franklin == NULL)
@@ -200,7 +126,15 @@ void MainMenu(int& mode, Appearance Page, Proportions window)
 					/*Page.FirstTypeButton = { Page.FirstTypeButton.x + cv / 2, Page.FirstTypeButton.y + cv / 2, Page.FirstTypeButton.w - cv, Page.FirstTypeButton.h - cv };
 					tap = 1;*/
 					quit = true;
-					mode = 6;
+					if (previous)
+					{
+						mode = 5;
+					}
+					else
+					{
+						mode = 6;
+					}
+
 				}
 				if (ButtonClick(Page.SecondTypeButton, event.button.x, event.button.y))
 				{
@@ -702,9 +636,101 @@ void Identification(int& mode, Appearance Page, Proportions window, char* gamble
 	TTF_CloseFont(Franklin);
 }
 
-void Play(int& mode, Proportions window, Zones Game, Elements& GameProgress, Appearance Page)
+void CheckPoint(int& mode, Appearance Page, Proportions window, bool& previous)
 {
-	
+	TTF_Font* Franklin = TTF_OpenFont("fonts\\Franklin.ttf", Page.HeadingFontSize);
+	if (Franklin == NULL)
+	{
+		cout << "Couldn't open TTF: Franklin! Error: " << SDL_GetError();
+		system("pause");
+		DeInit(1);
+	}
+	int TextFontSize = window.height / 14;
+	TTF_Font* SanFrancisco = TTF_OpenFont("fonts\\San Francisco.ttf", TextFontSize);
+	if (SanFrancisco == NULL)
+	{
+		cout << "Couldn't open TTF: San Francisco! Error: " << SDL_GetError();
+		system("pause");
+		DeInit(1);
+	}
+
+
+	char theme[] = u8"Меню сохранений";
+	char message[] = u8"У вас есть незавершенная  игра, хотите продолжить?";
+	SDL_Rect heading_rect;
+	SDL_Rect message_rect;
+
+	SDL_Texture* button_fifth = LoadTextureFromFile("images\\newgame.png");
+	SDL_Texture* button_sixth = LoadTextureFromFile("images\\continue.png");
+	SDL_Texture* heading = GenerateTextureFromText(theme, Franklin, &heading_rect, { 255, 255, 255, 0 });
+	SDL_Texture* announcement = GenerateTextureFromText(message, SanFrancisco, &message_rect, { 255, 255, 255, 0 });
+
+
+	SDL_Event event;
+	bool quit = false;
+
+	while (!quit)
+	{
+		while (SDL_PollEvent(&event))
+		{
+			switch (event.type)
+			{
+			case SDL_QUIT:
+				quit = true;
+				mode = 0;
+				break;
+			case SDL_MOUSEBUTTONDOWN:
+				if (ButtonClick(Page.FifthTypeButton, event.button.x, event.button.y) && event.button.button == SDL_BUTTON_LEFT)
+				{
+					quit = true;
+					previous = false;
+					mode = 6;
+				}
+				if (ButtonClick(Page.SixthTypeButton, event.button.x, event.button.y))
+				{
+					quit = true;
+					previous = true;
+					mode = 7;
+				}
+				break;
+			}
+
+		}
+		SDL_SetRenderDrawColor(ren, 0, 0, 0, 0);
+		SDL_RenderClear(ren);
+
+		SDL_SetRenderDrawColor(ren, r, g, b, 0);
+		for (int i = 0; i < ut; i++)
+			SDL_RenderDrawLine(ren, 0, Page.UnderlineIndent + i, window.width, Page.UnderlineIndent + i);
+
+		heading_rect.x = window.width / 2 - heading_rect.w / 2;
+		heading_rect.y = Page.UnderlineIndent / 2 - heading_rect.h / 2;
+		message_rect.x = window.width / 2 - message_rect.w / 2;
+		message_rect.y = Page.FifthTypeButton.y / 2 + Page.UnderlineIndent + ut - message_rect.h / 2;
+		SDL_RenderCopy(ren, heading, NULL, &heading_rect);
+		SDL_RenderCopy(ren, announcement, NULL, &message_rect);
+		SDL_RenderCopy(ren, button_fifth, NULL, &Page.FifthTypeButton);
+		SDL_RenderCopy(ren, button_sixth, NULL, &Page.SixthTypeButton);
+
+		SDL_RenderPresent(ren);
+	}
+
+	SDL_DestroyTexture(heading);
+	SDL_DestroyTexture(announcement);
+	SDL_DestroyTexture(button_fifth);
+	SDL_DestroyTexture(button_sixth);
+
+	TTF_CloseFont(SanFrancisco);
+	TTF_CloseFont(Franklin);
+}
+
+void Play(int& mode, Proportions window, Zones Game, Elements& GameProgress, Appearance Page, bool &previous)
+{
+	if (!previous)
+	{
+		Reset(GameProgress);
+	}
+
 	int TextFontSize = Game.ThrowButton1.h / 2;
 	TTF_Font* SanFrancisco = TTF_OpenFont("fonts\\San Francisco.ttf", TextFontSize);
 	if (SanFrancisco == NULL)
@@ -833,28 +859,30 @@ void Play(int& mode, Proportions window, Zones Game, Elements& GameProgress, App
 #pragma endregion 
 
 	//динамические
+	//анимация
 	bool animation = false;
+	//стакан опустился
 	bool down = false;
-	/*int ThrowMax;
-	int LeadSwap = 0;
-	int LeadThrows = 0;*/
-	int worth;
+	//остановка цикла
+	bool freeze = true;
+	//конец игры
+	bool end = false;
+	//смена раунда
+	bool flag = false;
+	//смена очереди
+	bool change = false;
+	//вспомогательная для раунда
 	int pt;
-	char phasetext[100];
+	//для анимации
+	int i = 0;
+	//текущая фаза
+	char phasetext[ams];
+	//значения комбинаций
 	int Compare[2];
 
-	/*if (GameProgress.Round == 0)
-	{
-		ThrowMax = 1;
-	}
-	else
-	{
-		ThrowMax = 3;
-	}*/
 
 	if (GameProgress.Round == 0)
 	{
-		*phasetext = '\0';
 		strcpy_s(phasetext, u8"Жеребьевка");
 	}
 	else
@@ -912,16 +940,21 @@ void Play(int& mode, Proportions window, Zones Game, Elements& GameProgress, App
 
 	SDL_Surface* surface = IMG_Load("images\\glass.png");
 	glass_rect = { 0, 0, surface->w, surface->h };
+	SDL_FreeSurface(surface);
+
 	SDL_Rect glass_recttmp = glass_rect;
 	SDL_Rect gameglasscopy = Game.Glass;
-	SDL_FreeSurface(surface);
+
+	if (GameProgress.Queue == 1)
+	{
+		gameglasscopy.x = infwidth / 2 - (playheight / 12 * 11) / 29 * 19 / 2;
+	}
+	else if (GameProgress.Queue == 2)
+	{
+		gameglasscopy.x = width - infwidth / 2 - (playheight / 12 * 11) / 29 * 19 / 2;
+	}
 	gameglasscopy.h = 0;
 	gameglasscopy.y = infheight;
-	int i = 0;
-
-
-	
-
 
 	SDL_Event event;
 	bool quit = false;
@@ -941,7 +974,7 @@ void Play(int& mode, Proportions window, Zones Game, Elements& GameProgress, App
 			case SDL_KEYDOWN:
 				if (event.key.keysym.scancode == SDL_SCANCODE_ESCAPE)
 				{
-					if (GameProgress.GameStatus == 0)
+					if (end == true)
 					{
 						mode = 1;
 						quit = true;
@@ -962,462 +995,70 @@ void Play(int& mode, Proportions window, Zones Game, Elements& GameProgress, App
 						quit = true;
 				}
 				//first throw button
-				if (ButtonClick(Game.ThrowButton1, event.button.x, event.button.y) && event.button.button == SDL_BUTTON_LEFT && GameProgress.Queue == 1 && animation == false)
+				if (ButtonClick(Game.ThrowButton1, event.button.x, event.button.y) && event.button.button == SDL_BUTTON_LEFT && GameProgress.Queue == 1 && animation == false && end == false)
 				{
+					if (GameProgress.GameStatus == 0)
+					{
+						GameProgress.GameStatus = 1;
+					}
+
 					animation = true;
+
 					if (GameProgress.LeadSwap == 2)
 					{
 						GameProgress.LeadSwap = 0;
 						GameProgress.ThrowMax = 3;
 						GameProgress.LeadThrows = 0;
-						strcpy_s(GameProgress.OutcomeText, u8" ");
-						strcpy_s(GameProgress.FinalText, u8" ");
-						SDL_DestroyTexture(outcome);
-						SDL_DestroyTexture(final);
-						outcome = GenerateTextureFromText(GameProgress.OutcomeText, Franklin, &outcome_rect, { 255, 255, 255, 0 });
-						final = GenerateTextureFromText(GameProgress.FinalText, Franklin, &final_rect, { 255, 255, 255, 0 });
-						outcome_rect.x = Game.Results.x + Game.Results.w / 2 - outcome_rect.w / 2;
-						outcome_rect.y = Game.Results.y + Game.Results.h / 3 + outcome_rect.h / 2;
-						final_rect.x = Game.Results.x + Game.Results.w / 2 - final_rect.w / 2;
-						final_rect.y = Game.Results.y + Game.Results.h / 3 * 2 + final_rect.h / 2;
-						GameProgress.Round++;
-						pt = GameProgress.Round;
-						*phasetext = '\0';
-						_itoa_s(pt, phasetext, 10);
-						strcat_s(phasetext, u8" раунд");
-						SDL_DestroyTexture(phase);
-						SDL_Texture* phase = GenerateTextureFromText(phasetext, Franklin, &phase_rect, { 255, 255, 255, 0 });
-						phase_rect.x = Game.Results.x + Game.Results.w / 2 - phase_rect.w / 2;
-						phase_rect.y = Game.Results.y + phase_rect.h / 2;
+						flag = true;
 					}
-					if (GameProgress.GameStatus == 0)
-						GameProgress.GameStatus = 1;
+					else
+					{
+						freeze = false;
+					}
+					
 					GameProgress.ThrowMax--;
 					GameProgress.LeadThrows++;
 				}
 				//second throw butoon
-				if (ButtonClick(Game.ThrowButton2, event.button.x, event.button.y) && event.button.button == SDL_BUTTON_LEFT && GameProgress.Queue == 2 && animation == false)
+				if (ButtonClick(Game.ThrowButton2, event.button.x, event.button.y) && event.button.button == SDL_BUTTON_LEFT && GameProgress.Queue == 2 && animation == false && end == false)
 				{
+					if (GameProgress.GameStatus == 0)
+					{
+						GameProgress.GameStatus = 1;
+					}
+
 					animation = true;
+
 					if (GameProgress.LeadSwap == 2)
 					{
 						GameProgress.LeadSwap = 0;
 						GameProgress.ThrowMax = 3;
 						GameProgress.LeadThrows = 0;
-						strcpy_s(GameProgress.OutcomeText, u8" ");
-						strcpy_s(GameProgress.FinalText, u8" ");
-						SDL_DestroyTexture(outcome);
-						SDL_DestroyTexture(final);
-						outcome = GenerateTextureFromText(GameProgress.OutcomeText, Franklin, &outcome_rect, { 255, 255, 255, 0 });
-						final = GenerateTextureFromText(GameProgress.FinalText, Franklin, &final_rect, { 255, 255, 255, 0 });
-						outcome_rect.x = Game.Results.x + Game.Results.w / 2 - outcome_rect.w / 2;
-						outcome_rect.y = Game.Results.y + Game.Results.h / 3 + outcome_rect.h / 2;
-						final_rect.x = Game.Results.x + Game.Results.w / 2 - final_rect.w / 2;
-						final_rect.y = Game.Results.y + Game.Results.h / 3 * 2 + final_rect.h / 2;
-						GameProgress.Round++;
-						pt = GameProgress.Round;
-						*phasetext = '\0';
-						_itoa_s(pt, phasetext, 10);
-						strcat_s(phasetext, u8" раунд");
-						SDL_DestroyTexture(phase);SDL_Texture* phase = GenerateTextureFromText(phasetext, Franklin, &phase_rect, { 255, 255, 255, 0 });
-						phase_rect.x = Game.Results.x + Game.Results.w / 2 - phase_rect.w / 2;
-						phase_rect.y = Game.Results.y + phase_rect.h / 2;
+						flag = true;
 					}
-					if (GameProgress.GameStatus == 0)
-						GameProgress.GameStatus = 1;
+					else
+					{
+						freeze = false;
+					}
+					
 					GameProgress.ThrowMax--;
 					GameProgress.LeadThrows++;
 				}
 				//first skip button
-				if (ButtonClick(Game.SkipButton1, event.button.x, event.button.y) && event.button.button == SDL_BUTTON_LEFT && GameProgress.Queue == 1 && animation == false && GameProgress.LeadThrows != 0)
+				if (ButtonClick(Game.SkipButton1, event.button.x, event.button.y) && event.button.button == SDL_BUTTON_LEFT && GameProgress.Queue == 1 && animation == false && GameProgress.LeadThrows != 0 && end == false)
 				{
-					if (GameProgress.LeadSwap == 0)
+					
+					if (GameProgress.LeadSwap < 2)
 					{
-						GameProgress.Queue = 2;
-						gameglasscopy.x = width - infwidth / 2 - (playheight / 12 * 11) / 29 * 19 / 2;
-						GameProgress.LeadSwap++;
-						GameProgress.ThrowMax = GameProgress.LeadThrows;
-						GameProgress.LeadThrows = 0;
-					}
-					else if (GameProgress.LeadSwap == 1)
-					{
-						if (GameProgress.Round == 0)
-						{
-							if (Compare[0] > Compare[1])
-							{
-								strcpy_s(GameProgress.OutcomeText, u8"Победил");
-								strcpy_s(GameProgress.FinalText, GameProgress.Gambler1);
-								SDL_DestroyTexture(outcome);
-								SDL_DestroyTexture(final);
-								outcome = GenerateTextureFromText(GameProgress.OutcomeText, Franklin, &outcome_rect, { 255, 255, 255, 0 });
-								final = GenerateTextureFromText(GameProgress.FinalText, Franklin, &final_rect, { 255, 255, 255, 0 });
-								outcome_rect.x = Game.Results.x + Game.Results.w / 2 - outcome_rect.w / 2;
-								outcome_rect.y = Game.Results.y + Game.Results.h / 3 + outcome_rect.h / 2;
-								final_rect.x = Game.Results.x + Game.Results.w / 2 - final_rect.w / 2;
-								final_rect.y = Game.Results.y + Game.Results.h / 3 * 2 + final_rect.h / 2;
-								GameProgress.Queue = 1;
-								gameglasscopy.x = infwidth / 2 - (playheight / 12 * 11) / 29 * 19 / 2;
-								GameProgress.Round++;
-							}
-							else if (Compare[0] < Compare[1])
-							{
-								strcpy_s(GameProgress.OutcomeText, u8"Победил");
-								strcpy_s(GameProgress.FinalText, GameProgress.Gambler2);
-								SDL_DestroyTexture(outcome);
-								SDL_DestroyTexture(final);
-								outcome = GenerateTextureFromText(GameProgress.OutcomeText, Franklin, &outcome_rect, { 255, 255, 255, 0 });
-								final = GenerateTextureFromText(GameProgress.FinalText, Franklin, &final_rect, { 255, 255, 255, 0 });
-								outcome_rect.x = Game.Results.x + Game.Results.w / 2 - outcome_rect.w / 2;
-								outcome_rect.y = Game.Results.y + Game.Results.h / 3 + outcome_rect.h / 2;
-								final_rect.x = Game.Results.x + Game.Results.w / 2 - final_rect.w / 2;
-								final_rect.y = Game.Results.y + Game.Results.h / 3 * 2 + final_rect.h / 2;
-								GameProgress.Queue = 2;
-								gameglasscopy.x = width - infwidth / 2 - (playheight / 12 * 11) / 29 * 19 / 2;
-								GameProgress.Round++;
-							}
-							else
-							{
-								strcpy_s(GameProgress.OutcomeText, u8"Ничья");
-								strcpy_s(GameProgress.FinalText, u8"Переигровка");
-								SDL_DestroyTexture(outcome);
-								SDL_DestroyTexture(final);
-								outcome = GenerateTextureFromText(GameProgress.OutcomeText, Franklin, &outcome_rect, { 255, 255, 255, 0 });
-								final = GenerateTextureFromText(GameProgress.FinalText, Franklin, &final_rect, { 255, 255, 255, 0 });
-								outcome_rect.x = Game.Results.x + Game.Results.w / 2 - outcome_rect.w / 2;
-								outcome_rect.y = Game.Results.y + Game.Results.h / 3 + outcome_rect.h / 2;
-								final_rect.x = Game.Results.x + Game.Results.w / 2 - final_rect.w / 2;
-								final_rect.y = Game.Results.y + Game.Results.h / 3 * 2 + final_rect.h / 2;
-								GameProgress.Queue = 1;
-								gameglasscopy.x = infwidth / 2 - (playheight / 12 * 11) / 29 * 19 / 2;
-							}
-						}
-						else
-						{
-							if (Compare[0] > Compare[1])
-							{
-								GameProgress.p1++;
-								if (GameProgress.p1 == 3)
-								{
-									strcpy_s(phasetext, GameProgress.Gambler1);
-									strcpy_s(GameProgress.OutcomeText, u8"Одержал победу");
-									strcpy_s(GameProgress.FinalText, u8"со счетом ");
-									char finaltext[ams];
-									char h[dq];
-									_itoa_s(GameProgress.p1, h, 10);
-									strcat_s(finaltext, h);
-									*h = ':';
-									_itoa_s(GameProgress.p2, h, 10);
-									strcat_s(finaltext, h);
-									strcpy_s(GameProgress.FinalText, finaltext);
-									SDL_DestroyTexture(phase);
-									SDL_DestroyTexture(outcome);
-									SDL_DestroyTexture(final);
-									phase = GenerateTextureFromText(GameProgress.FinalText, Franklin, &phase_rect, { 255, 255, 255, 0 });
-									outcome = GenerateTextureFromText(GameProgress.OutcomeText, Franklin, &outcome_rect, { 255, 255, 255, 0 });
-									final = GenerateTextureFromText(GameProgress.FinalText, Franklin, &final_rect, { 255, 255, 255, 0 });
-									phase_rect.x = Game.Results.x + Game.Results.w / 2 - phase_rect.w / 2;
-									phase_rect.y = Game.Results.y - phase_rect.h / 2;
-									outcome_rect.x = Game.Results.x + Game.Results.w / 2 - outcome_rect.w / 2;
-									outcome_rect.y = Game.Results.y + Game.Results.h / 3 + outcome_rect.h / 2;
-									final_rect.x = Game.Results.x + Game.Results.w / 2 - final_rect.w / 2;
-									final_rect.y = Game.Results.y + Game.Results.h / 3 * 2 + final_rect.h / 2;
-									GameProgress.GameStatus = 0;
-								}
-								else
-								{
-									strcpy_s(GameProgress.OutcomeText, u8"Победил");
-									strcpy_s(GameProgress.FinalText, GameProgress.Gambler1);
-									SDL_DestroyTexture(outcome);
-									SDL_DestroyTexture(final);
-									outcome = GenerateTextureFromText(GameProgress.OutcomeText, Franklin, &outcome_rect, { 255, 255, 255, 0 });
-									final = GenerateTextureFromText(GameProgress.FinalText, Franklin, &final_rect, { 255, 255, 255, 0 });
-									outcome_rect.x = Game.Results.x + Game.Results.w / 2 - outcome_rect.w / 2;
-									outcome_rect.y = Game.Results.y + Game.Results.h / 3 + outcome_rect.h / 2;
-									final_rect.x = Game.Results.x + Game.Results.w / 2 - final_rect.w / 2;
-									final_rect.y = Game.Results.y + Game.Results.h / 3 * 2 + final_rect.h / 2;
-									GameProgress.Queue = 1;
-									gameglasscopy.x = infwidth / 2 - (playheight / 12 * 11) / 29 * 19 / 2;
-									GameProgress.Round++;
-								}
-								_itoa_s(GameProgress.p1, points1, 10);
-								SDL_DestroyTexture(score1);
-								score1 = GenerateTextureFromText(points1, Franklin, &score1_rect, { 255, 255, 255, 0 });
-								score1_rect.x = Game.Score1.x + Game.Score1.w / 2 - score1_rect.w / 2;
-								score1_rect.y = Game.Score1.y + Game.Score1.h / 2 - score1_rect.h / 2;
-							}
-							else if (Compare[0] < Compare[1])
-							{
-								GameProgress.p2++;
-								if (GameProgress.p2 == 3)
-								{
-									strcpy_s(phasetext, GameProgress.Gambler2);
-									strcpy_s(GameProgress.OutcomeText, u8"Одержал победу");
-									strcpy_s(GameProgress.FinalText, u8"со счетом ");
-									char finaltext[ams];
-									char h[dq];
-									_itoa_s(GameProgress.p2, h, 10);
-									strcat_s(finaltext, h);
-									*h = ':';
-									_itoa_s(GameProgress.p1, h, 10);
-									strcat_s(finaltext, h);
-									strcpy_s(GameProgress.FinalText, finaltext);
-									SDL_DestroyTexture(phase);
-									SDL_DestroyTexture(outcome);
-									SDL_DestroyTexture(final);
-									phase = GenerateTextureFromText(GameProgress.FinalText, Franklin, &phase_rect, { 255, 255, 255, 0 });
-									outcome = GenerateTextureFromText(GameProgress.OutcomeText, Franklin, &outcome_rect, { 255, 255, 255, 0 });
-									final = GenerateTextureFromText(GameProgress.FinalText, Franklin, &final_rect, { 255, 255, 255, 0 });
-									phase_rect.x = Game.Results.x + Game.Results.w / 2 - phase_rect.w / 2;
-									phase_rect.y = Game.Results.y - phase_rect.h / 2;
-									outcome_rect.x = Game.Results.x + Game.Results.w / 2 - outcome_rect.w / 2;
-									outcome_rect.y = Game.Results.y + Game.Results.h / 3 + outcome_rect.h / 2;
-									final_rect.x = Game.Results.x + Game.Results.w / 2 - final_rect.w / 2;
-									final_rect.y = Game.Results.y + Game.Results.h / 3 * 2 + final_rect.h / 2;
-									GameProgress.GameStatus = 0;
-								}
-								else
-								{
-									strcpy_s(GameProgress.OutcomeText, u8"Победил");
-									strcpy_s(GameProgress.FinalText, GameProgress.Gambler2);
-									SDL_DestroyTexture(outcome);
-									SDL_DestroyTexture(final);
-									outcome = GenerateTextureFromText(GameProgress.OutcomeText, Franklin, &outcome_rect, { 255, 255, 255, 0 });
-									final = GenerateTextureFromText(GameProgress.FinalText, Franklin, &final_rect, { 255, 255, 255, 0 });
-									outcome_rect.x = Game.Results.x + Game.Results.w / 2 - outcome_rect.w / 2;
-									outcome_rect.y = Game.Results.y + Game.Results.h / 3 + outcome_rect.h / 2;
-									final_rect.x = Game.Results.x + Game.Results.w / 2 - final_rect.w / 2;
-									final_rect.y = Game.Results.y + Game.Results.h / 3 * 2 + final_rect.h / 2;
-									GameProgress.Queue = 2;
-									gameglasscopy.x = width - infwidth / 2 - (playheight / 12 * 11) / 29 * 19 / 2;
-									GameProgress.Round++;
-								}
-								_itoa_s(GameProgress.p2, points2, 10);
-								SDL_DestroyTexture(score2);
-								score2 = GenerateTextureFromText(points2, Franklin, &score2_rect, { 255, 255, 255, 0 });
-								score2_rect.x = Game.Score2.x + Game.Score2.w / 2 - score2_rect.w / 2;
-								score2_rect.y = Game.Score2.y + Game.Score2.h / 2 - score2_rect.h / 2;
-
-							}
-							else
-							{
-								strcpy_s(GameProgress.OutcomeText, u8"Ничья");
-								strcpy_s(GameProgress.FinalText, u8"Переигровка");
-								SDL_DestroyTexture(outcome);
-								SDL_DestroyTexture(final);
-								outcome = GenerateTextureFromText(GameProgress.OutcomeText, Franklin, &outcome_rect, { 255, 255, 255, 0 });
-								final = GenerateTextureFromText(GameProgress.FinalText, Franklin, &final_rect, { 255, 255, 255, 0 });
-								outcome_rect.x = Game.Results.x + Game.Results.w / 2 - outcome_rect.w / 2;
-								outcome_rect.y = Game.Results.y + Game.Results.h / 3 + outcome_rect.h / 2;
-								final_rect.x = Game.Results.x + Game.Results.w / 2 - final_rect.w / 2;
-								final_rect.y = Game.Results.y + Game.Results.h / 3 * 2 + final_rect.h / 2;
-								if (GameProgress.Queue == 1)
-								{
-									GameProgress.Queue = 2;
-									gameglasscopy.x = width - infwidth / 2 - (playheight / 12 * 11) / 29 * 19 / 2;
-								}
-								else if (GameProgress.Queue == 2)
-								{
-									GameProgress.Queue = 1;
-									gameglasscopy.x = infwidth / 2 - (playheight / 12 * 11) / 29 * 19 / 2;
-								}
-							}
-						}
+						change = true;
 					}
 				}
 				//second skip button
-				if (ButtonClick(Game.SkipButton2, event.button.x, event.button.y) && event.button.button == SDL_BUTTON_LEFT && GameProgress.Queue == 2 && animation == false && GameProgress.LeadThrows != 0)
-				{	
-					if (GameProgress.LeadSwap == 0)
+				if (ButtonClick(Game.SkipButton2, event.button.x, event.button.y) && event.button.button == SDL_BUTTON_LEFT && GameProgress.Queue == 2 && animation == false && GameProgress.LeadThrows != 0 && end == false)
+				{
+					if (GameProgress.LeadSwap < 2)
 					{
-						GameProgress.Queue = 1;
-						gameglasscopy.x = infwidth / 2 - (playheight / 12 * 11) / 29 * 19 / 2;
-						GameProgress.LeadSwap++;
-						GameProgress.ThrowMax = GameProgress.LeadThrows;
-						GameProgress.LeadThrows = 0;
-					}
-					else if (GameProgress.LeadSwap == 1)
-					{
-						if (GameProgress.Round == 0)
-						{
-							if (Compare[0] > Compare[1])
-							{
-								strcpy_s(GameProgress.OutcomeText, u8"Победил");
-								strcpy_s(GameProgress.FinalText, GameProgress.Gambler1);
-								SDL_DestroyTexture(outcome);
-								SDL_DestroyTexture(final);
-								outcome = GenerateTextureFromText(GameProgress.OutcomeText, Franklin, &outcome_rect, { 255, 255, 255, 0 });
-								final = GenerateTextureFromText(GameProgress.FinalText, Franklin, &final_rect, { 255, 255, 255, 0 });
-								outcome_rect.x = Game.Results.x + Game.Results.w / 2 - outcome_rect.w / 2;
-								outcome_rect.y = Game.Results.y + Game.Results.h / 3 + outcome_rect.h / 2;
-								final_rect.x = Game.Results.x + Game.Results.w / 2 - final_rect.w / 2;
-								final_rect.y = Game.Results.y + Game.Results.h / 3 * 2 + final_rect.h / 2;
-								GameProgress.Queue = 1;
-								gameglasscopy.x = infwidth / 2 - (playheight / 12 * 11) / 29 * 19 / 2;
-								GameProgress.Round++;
-							}
-							else if (Compare[0] < Compare[1])
-							{
-								strcpy_s(GameProgress.OutcomeText, u8"Победил");
-								strcpy_s(GameProgress.FinalText, GameProgress.Gambler2);
-								SDL_DestroyTexture(outcome);
-								SDL_DestroyTexture(final);
-								outcome = GenerateTextureFromText(GameProgress.OutcomeText, Franklin, &outcome_rect, { 255, 255, 255, 0 });
-								final = GenerateTextureFromText(GameProgress.FinalText, Franklin, &final_rect, { 255, 255, 255, 0 });
-								outcome_rect.x = Game.Results.x + Game.Results.w / 2 - outcome_rect.w / 2;
-								outcome_rect.y = Game.Results.y + Game.Results.h / 3 + outcome_rect.h / 2;
-								final_rect.x = Game.Results.x + Game.Results.w / 2 - final_rect.w / 2;
-								final_rect.y = Game.Results.y + Game.Results.h / 3 * 2 + final_rect.h / 2;
-								GameProgress.Queue = 2;
-								gameglasscopy.x = width - infwidth / 2 - (playheight / 12 * 11) / 29 * 19 / 2;
-								GameProgress.Round++;
-							}
-							else
-							{
-								strcpy_s(GameProgress.OutcomeText, u8"Ничья");
-								strcpy_s(GameProgress.FinalText, u8"Переигровка");
-								SDL_DestroyTexture(outcome);
-								SDL_DestroyTexture(final);
-								outcome = GenerateTextureFromText(GameProgress.OutcomeText, Franklin, &outcome_rect, { 255, 255, 255, 0 });
-								final = GenerateTextureFromText(GameProgress.FinalText, Franklin, &final_rect, { 255, 255, 255, 0 });
-								outcome_rect.x = Game.Results.x + Game.Results.w / 2 - outcome_rect.w / 2;
-								outcome_rect.y = Game.Results.y + Game.Results.h / 3 + outcome_rect.h / 2;
-								final_rect.x = Game.Results.x + Game.Results.w / 2 - final_rect.w / 2;
-								final_rect.y = Game.Results.y + Game.Results.h / 3 * 2 + final_rect.h / 2;
-								GameProgress.Queue = 1;
-								gameglasscopy.x = infwidth / 2 - (playheight / 12 * 11) / 29 * 19 / 2;
-							}
-						}
-						else
-						{
-							if (Compare[0] > Compare[1])
-							{
-								GameProgress.p1++;
-								if (GameProgress.p1 == 3)
-								{
-									strcpy_s(phasetext, GameProgress.Gambler1);
-									strcpy_s(GameProgress.OutcomeText, u8"Одержал победу");
-									strcpy_s(GameProgress.FinalText, u8"со счетом ");
-									char finaltext[ams];
-									char h[dq];
-									_itoa_s(GameProgress.p1, h, 10);
-									strcat_s(finaltext, h);
-									*h = ':';
-									_itoa_s(GameProgress.p2, h, 10);
-									strcat_s(finaltext, h);
-									strcpy_s(GameProgress.FinalText, finaltext);
-									SDL_DestroyTexture(phase);
-									SDL_DestroyTexture(outcome);
-									SDL_DestroyTexture(final);
-									phase = GenerateTextureFromText(GameProgress.FinalText, Franklin, &phase_rect, { 255, 255, 255, 0 });
-									outcome = GenerateTextureFromText(GameProgress.OutcomeText, Franklin, &outcome_rect, { 255, 255, 255, 0 });
-									final = GenerateTextureFromText(GameProgress.FinalText, Franklin, &final_rect, { 255, 255, 255, 0 });
-									phase_rect.x = Game.Results.x + Game.Results.w / 2 - phase_rect.w / 2;
-									phase_rect.y = Game.Results.y - phase_rect.h / 2;
-									outcome_rect.x = Game.Results.x + Game.Results.w / 2 - outcome_rect.w / 2;
-									outcome_rect.y = Game.Results.y + Game.Results.h / 3 + outcome_rect.h / 2;
-									final_rect.x = Game.Results.x + Game.Results.w / 2 - final_rect.w / 2;
-									final_rect.y = Game.Results.y + Game.Results.h / 3 * 2 + final_rect.h / 2;
-									GameProgress.GameStatus = 0;
-								}
-								else
-								{
-									strcpy_s(GameProgress.OutcomeText, u8"Победил");
-									strcpy_s(GameProgress.FinalText, GameProgress.Gambler1);
-									SDL_DestroyTexture(outcome);
-									SDL_DestroyTexture(final);
-									outcome = GenerateTextureFromText(GameProgress.OutcomeText, Franklin, &outcome_rect, { 255, 255, 255, 0 });
-									final = GenerateTextureFromText(GameProgress.FinalText, Franklin, &final_rect, { 255, 255, 255, 0 });
-									outcome_rect.x = Game.Results.x + Game.Results.w / 2 - outcome_rect.w / 2;
-									outcome_rect.y = Game.Results.y + Game.Results.h / 3 + outcome_rect.h / 2;
-									final_rect.x = Game.Results.x + Game.Results.w / 2 - final_rect.w / 2;
-									final_rect.y = Game.Results.y + Game.Results.h / 3 * 2 + final_rect.h / 2;
-									GameProgress.Queue = 1;
-									gameglasscopy.x = infwidth / 2 - (playheight / 12 * 11) / 29 * 19 / 2;
-									GameProgress.Round++;
-								}
-								_itoa_s(GameProgress.p1, points1, 10);
-								SDL_DestroyTexture(score1);
-								score1 = GenerateTextureFromText(points1, Franklin, &score1_rect, { 255, 255, 255, 0 });
-								score1_rect.x = Game.Score1.x + Game.Score1.w / 2 - score1_rect.w / 2;
-								score1_rect.y = Game.Score1.y + Game.Score1.h / 2 - score1_rect.h / 2;
-							}
-							else if (Compare[0] < Compare[1])
-							{
-								GameProgress.p2++;
-								if (GameProgress.p2 == 3)
-								{
-									strcpy_s(phasetext, GameProgress.Gambler2);
-									strcpy_s(GameProgress.OutcomeText, u8"Одержал победу");
-									strcpy_s(GameProgress.FinalText, u8"со счетом ");
-									char finaltext[ams];
-									char h[dq];
-									_itoa_s(GameProgress.p2, h, 10);
-									strcat_s(finaltext, h);
-									*h = ':';
-									_itoa_s(GameProgress.p1, h, 10);
-									strcat_s(finaltext, h);
-									strcpy_s(GameProgress.FinalText, finaltext);
-									SDL_DestroyTexture(phase);
-									SDL_DestroyTexture(outcome);
-									SDL_DestroyTexture(final);
-									phase = GenerateTextureFromText(GameProgress.FinalText, Franklin, &phase_rect, { 255, 255, 255, 0 });
-									outcome = GenerateTextureFromText(GameProgress.OutcomeText, Franklin, &outcome_rect, { 255, 255, 255, 0 });
-									final = GenerateTextureFromText(GameProgress.FinalText, Franklin, &final_rect, { 255, 255, 255, 0 });
-									phase_rect.x = Game.Results.x + Game.Results.w / 2 - phase_rect.w / 2;
-									phase_rect.y = Game.Results.y - phase_rect.h / 2;
-									outcome_rect.x = Game.Results.x + Game.Results.w / 2 - outcome_rect.w / 2;
-									outcome_rect.y = Game.Results.y + Game.Results.h / 3 + outcome_rect.h / 2;
-									final_rect.x = Game.Results.x + Game.Results.w / 2 - final_rect.w / 2;
-									final_rect.y = Game.Results.y + Game.Results.h / 3 * 2 + final_rect.h / 2;
-									GameProgress.GameStatus = 0;
-								}
-								else
-								{
-									strcpy_s(GameProgress.OutcomeText, u8"Победил");
-									strcpy_s(GameProgress.FinalText, GameProgress.Gambler2);
-									SDL_DestroyTexture(outcome);
-									SDL_DestroyTexture(final);
-									outcome = GenerateTextureFromText(GameProgress.OutcomeText, Franklin, &outcome_rect, { 255, 255, 255, 0 });
-									final = GenerateTextureFromText(GameProgress.FinalText, Franklin, &final_rect, { 255, 255, 255, 0 });
-									outcome_rect.x = Game.Results.x + Game.Results.w / 2 - outcome_rect.w / 2;
-									outcome_rect.y = Game.Results.y + Game.Results.h / 3 + outcome_rect.h / 2;
-									final_rect.x = Game.Results.x + Game.Results.w / 2 - final_rect.w / 2;
-									final_rect.y = Game.Results.y + Game.Results.h / 3 * 2 + final_rect.h / 2;
-									GameProgress.Queue = 2;
-									gameglasscopy.x = width - infwidth / 2 - (playheight / 12 * 11) / 29 * 19 / 2;
-									GameProgress.Round++;
-								}
-								_itoa_s(GameProgress.p2, points2, 10);
-								SDL_DestroyTexture(score2);
-								score2 = GenerateTextureFromText(points2, Franklin, &score2_rect, { 255, 255, 255, 0 });
-								score2_rect.x = Game.Score2.x + Game.Score2.w / 2 - score2_rect.w / 2;
-								score2_rect.y = Game.Score2.y + Game.Score2.h / 2 - score2_rect.h / 2;
-
-							}
-							else
-							{
-								strcpy_s(GameProgress.OutcomeText, u8"Ничья");
-								strcpy_s(GameProgress.FinalText, u8"Переигровка");
-								SDL_DestroyTexture(outcome);
-								SDL_DestroyTexture(final);
-								outcome = GenerateTextureFromText(GameProgress.OutcomeText, Franklin, &outcome_rect, { 255, 255, 255, 0 });
-								final = GenerateTextureFromText(GameProgress.FinalText, Franklin, &final_rect, { 255, 255, 255, 0 });
-								outcome_rect.x = Game.Results.x + Game.Results.w / 2 - outcome_rect.w / 2;
-								outcome_rect.y = Game.Results.y + Game.Results.h / 3 + outcome_rect.h / 2;
-								final_rect.x = Game.Results.x + Game.Results.w / 2 - final_rect.w / 2;
-								final_rect.y = Game.Results.y + Game.Results.h / 3 * 2 + final_rect.h / 2;
-								if (GameProgress.Queue == 1)
-								{
-									GameProgress.Queue = 2;
-									gameglasscopy.x = width - infwidth / 2 - (playheight / 12 * 11) / 29 * 19 / 2;
-								}
-								else if (GameProgress.Queue == 2)
-								{
-									GameProgress.Queue = 1;
-									gameglasscopy.x = infwidth / 2 - (playheight / 12 * 11) / 29 * 19 / 2;
-								}
-							}
-						}
+						change = true;
 					}
 				}
 				break;
@@ -1427,107 +1068,13 @@ void Play(int& mode, Proportions window, Zones Game, Elements& GameProgress, App
 		//==============================================================================
 		//логика
 		
-		//if (animation == false)
-		//{
-		//	if (GameProgress.ThrowMax == 0)
-		//	{
-		//		if (GameProgress.LeadSwap == 2)
-		//		{
-		//			if (Compare[0] > Compare[1])
-		//			{
-		//				strcpy_s(GameProgress.OutcomeText, u8"Победил");
-		//				strcpy_s(GameProgress.FinalText, GameProgress.Gambler1);
-		//				SDL_DestroyTexture(outcome);
-		//				SDL_DestroyTexture(final);
-		//				outcome = GenerateTextureFromText(GameProgress.OutcomeText, Franklin, &outcome_rect, { 255, 255, 255, 0 });
-		//				final = GenerateTextureFromText(GameProgress.FinalText, Franklin, &final_rect, { 255, 255, 255, 0 });
-		//				outcome_rect.x = Game.Results.x + Game.Results.w / 2 - outcome_rect.w / 2;
-		//				outcome_rect.y = Game.Results.y + Game.Results.h / 3 + outcome_rect.h / 2;
-		//				final_rect.x = Game.Results.x + Game.Results.w / 2 - final_rect.w / 2;
-		//				final_rect.y = Game.Results.y + Game.Results.h / 3 * 2 + final_rect.h / 2;
-		//				GameProgress.Queue = 1;
-		//				gameglasscopy.x = infwidth / 2 - (playheight / 12 * 11) / 29 * 19 / 2;
-		//				GameProgress.p1++;
-		//				_itoa_s(GameProgress.p1, points1, 10);
-		//				SDL_DestroyTexture(score1);
-		//				score1 = GenerateTextureFromText(points1, Franklin, &score1_rect, { 255, 255, 255, 0 });
-		//			}
-		//			else if (Compare[0] < Compare[1])
-		//			{
-		//				strcpy_s(GameProgress.OutcomeText, u8"Победил");
-		//				strcpy_s(GameProgress.FinalText, GameProgress.Gambler2);
-		//				SDL_DestroyTexture(outcome);
-		//				SDL_DestroyTexture(final);
-		//				outcome = GenerateTextureFromText(GameProgress.OutcomeText, Franklin, &outcome_rect, { 255, 255, 255, 0 });
-		//				final = GenerateTextureFromText(GameProgress.FinalText, Franklin, &final_rect, { 255, 255, 255, 0 });
-		//				outcome_rect.x = Game.Results.x + Game.Results.w / 2 - outcome_rect.w / 2;
-		//				outcome_rect.y = Game.Results.y + Game.Results.h / 3 + outcome_rect.h / 2;
-		//				final_rect.x = Game.Results.x + Game.Results.w / 2 - final_rect.w / 2;
-		//				final_rect.y = Game.Results.y + Game.Results.h / 3 * 2 + final_rect.h / 2;
-		//				GameProgress.Queue = 2;
-		//				gameglasscopy.x = width - infwidth / 2 - (playheight / 12 * 11) / 29 * 19 / 2;
-		//				GameProgress.p2++;
-		//				_itoa_s(GameProgress.p2, points2, 10);
-		//				SDL_DestroyTexture(score2);
-		//				score2 = GenerateTextureFromText(points2, Franklin, &score2_rect, { 255, 255, 255, 0 });
-		//			}
-		//			else
-		//			{
-		//				strcpy_s(GameProgress.OutcomeText, u8"Ничья");
-		//				strcpy_s(GameProgress.FinalText, u8"Переигровка");
-		//				SDL_DestroyTexture(outcome);
-		//				SDL_DestroyTexture(final);
-		//				outcome = GenerateTextureFromText(GameProgress.OutcomeText, Franklin, &outcome_rect, { 255, 255, 255, 0 });
-		//				final = GenerateTextureFromText(GameProgress.FinalText, Franklin, &final_rect, { 255, 255, 255, 0 });
-		//				outcome_rect.x = Game.Results.x + Game.Results.w / 2 - outcome_rect.w / 2;
-		//				outcome_rect.y = Game.Results.y + Game.Results.h / 3 + outcome_rect.h / 2;
-		//				final_rect.x = Game.Results.x + Game.Results.w / 2 - final_rect.w / 2;
-		//				final_rect.y = Game.Results.y + Game.Results.h / 3 * 2 + final_rect.h / 2;
-		//				GameProgress.Queue = 1;
-		//				gameglasscopy.x = infwidth / 2 - (playheight / 12 * 11) / 29 * 19 / 2;
-		//			}
-		//			/*GameProgress.ThrowMax = 3;
-		//			GameProgress.LeadSwap = 0;
-		//			GameProgress.LeadThrows = 0;
-		//			if (GameProgress.Queue == 1)
-		//			{
-		//				GameProgress.Queue = 2;
-		//				gameglasscopy.x = width - infwidth / 2 - (playheight / 12 * 11) / 29 * 19 / 2;
-		//			}
-		//			else if (GameProgress.Queue == 2)
-		//			{
-		//				GameProgress.Queue = 1;
-		//				gameglasscopy.x = infwidth / 2 - (playheight / 12 * 11) / 29 * 19 / 2;
-		//			}
-		//			GameProgress.Round++;*/
-		//		}
-		//		else
-		//		{
-		//			GameProgress.LeadSwap++;
-		//			if (GameProgress.Queue == 1 && GameProgress.LeadSwap == 1)
-		//			{
-		//				GameProgress.Queue = 2;
-		//				GameProgress.ThrowMax = GameProgress.LeadThrows;
-		//				GameProgress.LeadThrows = 0;
-		//				gameglasscopy.x = width - infwidth / 2 - (playheight / 12 * 11) / 29 * 19 / 2;
-		//			}
-		//			else if (GameProgress.Queue == 2 && GameProgress.LeadSwap == 1)
-		//			{
-		//				GameProgress.Queue = 1;
-		//				GameProgress.ThrowMax = GameProgress.LeadThrows;
-		//				GameProgress.LeadThrows = 0;
-		//				gameglasscopy.x = infwidth / 2 - (playheight / 12 * 11) / 29 * 19 / 2;
-		//			}
-		//		}
-
-		//	}
-		//}
-
-		if (animation == false)
+		
+		//ходы
+  		if (animation == false)
 		{
 			if (GameProgress.LeadSwap == 0)
 			{
-				if (GameProgress.ThrowMax == 0)
+				if (GameProgress.ThrowMax <= 0 || change == true)
 				{
 					if (GameProgress.Queue == 1)
 					{
@@ -1539,184 +1086,160 @@ void Play(int& mode, Proportions window, Zones Game, Elements& GameProgress, App
 						GameProgress.Queue = 1;
 						gameglasscopy.x = infwidth / 2 - (playheight / 12 * 11) / 29 * 19 / 2;
 					}
+
 					GameProgress.LeadSwap++;
 					GameProgress.ThrowMax = GameProgress.LeadThrows;
 					GameProgress.LeadThrows = 0;
 				}
+				change = false;
 			}
-			else if (GameProgress.LeadSwap == 1)
+			else if (GameProgress.LeadSwap == 1 && freeze == false)
 			{
-				if (GameProgress.ThrowMax == 0)
+				if (GameProgress.ThrowMax <= 0 || change == true)
 				{
 					if (GameProgress.Round == 0)
 					{
+						strcpy_s(GameProgress.OutcomeText, u8" ");
+						strcpy_s(GameProgress.FinalText, u8" ");
+
 						if (Compare[0] > Compare[1])
 						{
 							strcpy_s(GameProgress.OutcomeText, u8"Победил");
 							strcpy_s(GameProgress.FinalText, GameProgress.Gambler1);
-							SDL_DestroyTexture(outcome);
-							SDL_DestroyTexture(final);
-							outcome = GenerateTextureFromText(GameProgress.OutcomeText, Franklin, &outcome_rect, { 255, 255, 255, 0 });
-							final = GenerateTextureFromText(GameProgress.FinalText, Franklin, &final_rect, { 255, 255, 255, 0 });
-							outcome_rect.x = Game.Results.x + Game.Results.w / 2 - outcome_rect.w / 2;
-							outcome_rect.y = Game.Results.y + Game.Results.h / 3 + outcome_rect.h / 2;
-							final_rect.x = Game.Results.x + Game.Results.w / 2 - final_rect.w / 2;
-							final_rect.y = Game.Results.y + Game.Results.h / 3 * 2 + final_rect.h / 2;
+
 							GameProgress.Queue = 1;
 							gameglasscopy.x = infwidth / 2 - (playheight / 12 * 11) / 29 * 19 / 2;
-							//GameProgress.Round++;
 						}
 						else if (Compare[0] < Compare[1])
 						{
 							strcpy_s(GameProgress.OutcomeText, u8"Победил");
 							strcpy_s(GameProgress.FinalText, GameProgress.Gambler2);
-							SDL_DestroyTexture(outcome);
-							SDL_DestroyTexture(final);
-							outcome = GenerateTextureFromText(GameProgress.OutcomeText, Franklin, &outcome_rect, { 255, 255, 255, 0 });
-							final = GenerateTextureFromText(GameProgress.FinalText, Franklin, &final_rect, { 255, 255, 255, 0 });
-							outcome_rect.x = Game.Results.x + Game.Results.w / 2 - outcome_rect.w / 2;
-							outcome_rect.y = Game.Results.y + Game.Results.h / 3 + outcome_rect.h / 2;
-							final_rect.x = Game.Results.x + Game.Results.w / 2 - final_rect.w / 2;
-							final_rect.y = Game.Results.y + Game.Results.h / 3 * 2 + final_rect.h / 2;
+
 							GameProgress.Queue = 2;
 							gameglasscopy.x = width - infwidth / 2 - (playheight / 12 * 11) / 29 * 19 / 2;
-							//GameProgress.Round++;
 						}
-						else
+						else if (Compare[0] == Compare[1])
 						{
 							strcpy_s(GameProgress.OutcomeText, u8"Ничья");
 							strcpy_s(GameProgress.FinalText, u8"Переигровка");
-							SDL_DestroyTexture(outcome);
-							SDL_DestroyTexture(final);
-							outcome = GenerateTextureFromText(GameProgress.OutcomeText, Franklin, &outcome_rect, { 255, 255, 255, 0 });
-							final = GenerateTextureFromText(GameProgress.FinalText, Franklin, &final_rect, { 255, 255, 255, 0 });
-							outcome_rect.x = Game.Results.x + Game.Results.w / 2 - outcome_rect.w / 2;
-							outcome_rect.y = Game.Results.y + Game.Results.h / 3 + outcome_rect.h / 2;
-							final_rect.x = Game.Results.x + Game.Results.w / 2 - final_rect.w / 2;
-							final_rect.y = Game.Results.y + Game.Results.h / 3 * 2 + final_rect.h / 2;
+
 							GameProgress.Queue = 1;
 							gameglasscopy.x = infwidth / 2 - (playheight / 12 * 11) / 29 * 19 / 2;
 						}
+
+						SDL_DestroyTexture(outcome);
+						SDL_DestroyTexture(final);
+
+						outcome = GenerateTextureFromText(GameProgress.OutcomeText, Franklin, &outcome_rect, { 255, 255, 255, 0 });
+						final = GenerateTextureFromText(GameProgress.FinalText, Franklin, &final_rect, { 255, 255, 255, 0 });
+
+						outcome_rect.x = Game.Results.x + Game.Results.w / 2 - outcome_rect.w / 2;
+						final_rect.x = Game.Results.x + Game.Results.w / 2 - final_rect.w / 2;
+
+						GameProgress.LeadSwap++;
 					}
 					else
 					{
+						strcpy_s(GameProgress.OutcomeText, u8" ");
+						strcpy_s(GameProgress.FinalText, " ");
+
 						if (Compare[0] > Compare[1])
 						{
 							GameProgress.p1++;
-							if (GameProgress.p1 == 3)
+							if (GameProgress.p1 >= 3)
 							{
+								strcpy_s(phasetext, " ");
 								strcpy_s(phasetext, GameProgress.Gambler1);
 								strcpy_s(GameProgress.OutcomeText, u8"Одержал победу");
-								strcpy_s(GameProgress.FinalText, u8"со счетом ");
-								/*char finaltext[ams];
-								char h[dq];
-								_itoa_s(GameProgress.p1, h, 10);
-								strcat_s(finaltext, h);
-								*h = ':';
-								_itoa_s(GameProgress.p2, h, 10);
-								strcat_s(finaltext, h);
-								strcpy_s(GameProgress.FinalText, finaltext);*/
+								sprintf_s(GameProgress.FinalText, u8"со счетом %d : %d", GameProgress.p1, GameProgress.p2);
+								
 								SDL_DestroyTexture(phase);
-								SDL_DestroyTexture(outcome);
-								SDL_DestroyTexture(final);
-								phase = GenerateTextureFromText(GameProgress.FinalText, Franklin, &phase_rect, { 255, 255, 255, 0 });
-								outcome = GenerateTextureFromText(GameProgress.OutcomeText, Franklin, &outcome_rect, { 255, 255, 255, 0 });
-								final = GenerateTextureFromText(GameProgress.FinalText, Franklin, &final_rect, { 255, 255, 255, 0 });
+
+								phase = GenerateTextureFromText(phasetext, Franklin, &phase_rect, { 255, 255, 255, 0 });
+
 								phase_rect.x = Game.Results.x + Game.Results.w / 2 - phase_rect.w / 2;
-								phase_rect.y = Game.Results.y - phase_rect.h / 2;
-								outcome_rect.x = Game.Results.x + Game.Results.w / 2 - outcome_rect.w / 2;
-								outcome_rect.y = Game.Results.y + Game.Results.h / 3 + outcome_rect.h / 2;
-								final_rect.x = Game.Results.x + Game.Results.w / 2 - final_rect.w / 2;
-								final_rect.y = Game.Results.y + Game.Results.h / 3 * 2 + final_rect.h / 2;
+								
 								GameProgress.GameStatus = 0;
+								end = true;
 							}
 							else
 							{
 								strcpy_s(GameProgress.OutcomeText, u8"Победил");
 								strcpy_s(GameProgress.FinalText, GameProgress.Gambler1);
-								SDL_DestroyTexture(outcome);
-								SDL_DestroyTexture(final);
-								outcome = GenerateTextureFromText(GameProgress.OutcomeText, Franklin, &outcome_rect, { 255, 255, 255, 0 });
-								final = GenerateTextureFromText(GameProgress.FinalText, Franklin, &final_rect, { 255, 255, 255, 0 });
-								outcome_rect.x = Game.Results.x + Game.Results.w / 2 - outcome_rect.w / 2;
-								outcome_rect.y = Game.Results.y + Game.Results.h / 3 + outcome_rect.h / 2;
-								final_rect.x = Game.Results.x + Game.Results.w / 2 - final_rect.w / 2;
-								final_rect.y = Game.Results.y + Game.Results.h / 3 * 2 + final_rect.h / 2;
+
 								GameProgress.Queue = 1;
 								gameglasscopy.x = infwidth / 2 - (playheight / 12 * 11) / 29 * 19 / 2;
-								GameProgress.Round++;
 							}
-							_itoa_s(GameProgress.p1, points1, 10);
+
+							SDL_DestroyTexture(outcome);
+							SDL_DestroyTexture(final);
 							SDL_DestroyTexture(score1);
+
+							_itoa_s(GameProgress.p1, points1, 10);
+
+							outcome = GenerateTextureFromText(GameProgress.OutcomeText, Franklin, &outcome_rect, { 255, 255, 255, 0 });
+							final = GenerateTextureFromText(GameProgress.FinalText, Franklin, &final_rect, { 255, 255, 255, 0 });
 							score1 = GenerateTextureFromText(points1, Franklin, &score1_rect, { 255, 255, 255, 0 });
-							score1_rect.x = Game.Score1.x + Game.Score1.w / 2 - score1_rect.w / 2;
-							score1_rect.y = Game.Score1.y + Game.Score1.h / 2 - score1_rect.h / 2;
+
+							outcome_rect.x = Game.Results.x + Game.Results.w / 2 - outcome_rect.w / 2;
+							final_rect.x = Game.Results.x + Game.Results.w / 2 - final_rect.w / 2;		
 						}
 						else if (Compare[0] < Compare[1])
 						{
 							GameProgress.p2++;
-							if (GameProgress.p2 == 3)
+							if (GameProgress.p2 >= 3)
 							{
+								strcpy_s(phasetext, " ");
 								strcpy_s(phasetext, GameProgress.Gambler2);
 								strcpy_s(GameProgress.OutcomeText, u8"Одержал победу");
-								strcpy_s(GameProgress.FinalText, u8"со счетом ");
-								/*char finaltext[ams];
-								char h[dq];
-								_itoa_s(GameProgress.p2, h, 10);
-								strcat_s(finaltext, h);
-								*h = ':';
-								_itoa_s(GameProgress.p1, h, 10);
-								strcat_s(finaltext, h);
-								strcpy_s(GameProgress.FinalText, finaltext);*/
+								sprintf_s(GameProgress.FinalText, u8"со счетом %d : %d", GameProgress.p2, GameProgress.p1);
+								
 								SDL_DestroyTexture(phase);
-								SDL_DestroyTexture(outcome);
-								SDL_DestroyTexture(final);
-								phase = GenerateTextureFromText(GameProgress.FinalText, Franklin, &phase_rect, { 255, 255, 255, 0 });
-								outcome = GenerateTextureFromText(GameProgress.OutcomeText, Franklin, &outcome_rect, { 255, 255, 255, 0 });
-								final = GenerateTextureFromText(GameProgress.FinalText, Franklin, &final_rect, { 255, 255, 255, 0 });
+
+								phase = GenerateTextureFromText(phasetext, Franklin, &phase_rect, { 255, 255, 255, 0 });
+								
 								phase_rect.x = Game.Results.x + Game.Results.w / 2 - phase_rect.w / 2;
-								phase_rect.y = Game.Results.y - phase_rect.h / 2;
-								outcome_rect.x = Game.Results.x + Game.Results.w / 2 - outcome_rect.w / 2;
-								outcome_rect.y = Game.Results.y + Game.Results.h / 3 + outcome_rect.h / 2;
-								final_rect.x = Game.Results.x + Game.Results.w / 2 - final_rect.w / 2;
-								final_rect.y = Game.Results.y + Game.Results.h / 3 * 2 + final_rect.h / 2;
+								
 								GameProgress.GameStatus = 0;
+								end = true;
 							}
-							else
+							else 
 							{
 								strcpy_s(GameProgress.OutcomeText, u8"Победил");
 								strcpy_s(GameProgress.FinalText, GameProgress.Gambler2);
-								SDL_DestroyTexture(outcome);
-								SDL_DestroyTexture(final);
-								outcome = GenerateTextureFromText(GameProgress.OutcomeText, Franklin, &outcome_rect, { 255, 255, 255, 0 });
-								final = GenerateTextureFromText(GameProgress.FinalText, Franklin, &final_rect, { 255, 255, 255, 0 });
-								outcome_rect.x = Game.Results.x + Game.Results.w / 2 - outcome_rect.w / 2;
-								outcome_rect.y = Game.Results.y + Game.Results.h / 3 + outcome_rect.h / 2;
-								final_rect.x = Game.Results.x + Game.Results.w / 2 - final_rect.w / 2;
-								final_rect.y = Game.Results.y + Game.Results.h / 3 * 2 + final_rect.h / 2;
+								
 								GameProgress.Queue = 2;
 								gameglasscopy.x = width - infwidth / 2 - (playheight / 12 * 11) / 29 * 19 / 2;
-								GameProgress.Round++;
 							}
-							_itoa_s(GameProgress.p2, points2, 10);
+
+							SDL_DestroyTexture(phase);
+							SDL_DestroyTexture(outcome);
 							SDL_DestroyTexture(score2);
-							score2 = GenerateTextureFromText(points2, Franklin, &score2_rect, { 255, 255, 255, 0 });							
-							score2_rect.x = Game.Score2.x + Game.Score2.w / 2 - score2_rect.w / 2;
-							score2_rect.y = Game.Score2.y + Game.Score2.h / 2 - score2_rect.h / 2;
+
+							_itoa_s(GameProgress.p2, points2, 10);
 							
+							outcome = GenerateTextureFromText(GameProgress.OutcomeText, Franklin, &outcome_rect, { 255, 255, 255, 0 });
+							final = GenerateTextureFromText(GameProgress.FinalText, Franklin, &final_rect, { 255, 255, 255, 0 });
+							score2 = GenerateTextureFromText(points2, Franklin, &score2_rect, { 255, 255, 255, 0 });
+
+							outcome_rect.x = Game.Results.x + Game.Results.w / 2 - outcome_rect.w / 2;
+							final_rect.x = Game.Results.x + Game.Results.w / 2 - final_rect.w / 2;
+							score2_rect.x = Game.Score2.x + Game.Score2.w / 2 - score2_rect.w / 2;
 						}
-						else
+						else if (Compare[0] == Compare[1])
 						{
 							strcpy_s(GameProgress.OutcomeText, u8"Ничья");
 							strcpy_s(GameProgress.FinalText, u8"Переигровка");
+
 							SDL_DestroyTexture(outcome);
 							SDL_DestroyTexture(final);
+
 							outcome = GenerateTextureFromText(GameProgress.OutcomeText, Franklin, &outcome_rect, { 255, 255, 255, 0 });
 							final = GenerateTextureFromText(GameProgress.FinalText, Franklin, &final_rect, { 255, 255, 255, 0 });
+
 							outcome_rect.x = Game.Results.x + Game.Results.w / 2 - outcome_rect.w / 2;
-							outcome_rect.y = Game.Results.y + Game.Results.h / 3 + outcome_rect.h / 2;
 							final_rect.x = Game.Results.x + Game.Results.w / 2 - final_rect.w / 2;
-							final_rect.y = Game.Results.y + Game.Results.h / 3 * 2 + final_rect.h / 2;
+
 							if (GameProgress.Queue == 1)
 							{
 								GameProgress.Queue = 2;
@@ -1728,15 +1251,43 @@ void Play(int& mode, Proportions window, Zones Game, Elements& GameProgress, App
 								gameglasscopy.x = infwidth / 2 - (playheight / 12 * 11) / 29 * 19 / 2;
 							}
 						}
+
+						GameProgress.LeadSwap++;
 					}
+					freeze = true;
+					change = false;
 				}
 			}
+			
 		}
-
-		/*switch (GameProgress.Round)
+		if (flag)
 		{
+			strcpy_s(GameProgress.OutcomeText, u8" ");
+			strcpy_s(GameProgress.FinalText, " ");
+			strcpy_s(phasetext, " ");
 
-		}*/
+			GameProgress.Round++;
+			pt = GameProgress.Round;
+			_itoa_s(pt, phasetext, 10);
+			strcat_s(phasetext, u8" раунд");
+			strcpy_s(GameProgress.OutcomeText, u8" ");
+			strcpy_s(GameProgress.FinalText, u8" ");
+
+			SDL_DestroyTexture(phase);
+			SDL_DestroyTexture(outcome);
+			SDL_DestroyTexture(final);
+
+			phase = GenerateTextureFromText(phasetext, Franklin, &phase_rect, { 255, 255, 255, 0 });
+			outcome = GenerateTextureFromText(GameProgress.OutcomeText, Franklin, &outcome_rect, { 255, 255, 255, 0 });
+			final = GenerateTextureFromText(GameProgress.FinalText, Franklin, &final_rect, { 255, 255, 255, 0 });
+
+			phase_rect.x = Game.Results.x + Game.Results.w / 2 - phase_rect.w / 2;
+			outcome_rect.x = Game.Results.x + Game.Results.w / 2 - outcome_rect.w / 2;
+			final_rect.x = Game.Results.x + Game.Results.w / 2 - final_rect.w / 2;
+
+			flag = false;
+			freeze = false;
+		}
 
 		if (GameProgress.Queue == 1)
 			lead_rect.x = Game.Name1.x + Game.Name1.w - lead_rect.w - ut;
@@ -1747,51 +1298,55 @@ void Play(int& mode, Proportions window, Zones Game, Elements& GameProgress, App
 		SDL_Rect dice1_rect = Game.Dice1;
 		SDL_Rect dice2_rect = Game.Dice2;
 
-		if (animation == true && down == false)
+		if (animation == true)
 		{
-			if (gameglasscopy.h < playheight / 12 * 11)
+			if (!down)
 			{
-				glass_recttmp.y = glass_rect.h - i * 0.755;
-				glass_recttmp.h = i * 0.755;
-				gameglasscopy.h = i;
-				i += speed;
-			}
-			else if (gameglasscopy.y < infheight + playheight / 24)
-				gameglasscopy.y += speed;
-			else
-			{
-				GenerateRandValues(GameProgress.DiceValues, GameProgress.Queue);
-				down = true;
-			}
-		}
-		if (animation == true && down == true)
-		{
-			
-			if (gameglasscopy.y >= infheight)
-				gameglasscopy.y -= speed;
-			else if (gameglasscopy.h >= 0)
-			{
-				glass_recttmp.y = glass_rect.h - i * 0.755;
-				glass_recttmp.h = i * 0.755;
-				gameglasscopy.h = i;
-				i -= speed;
-			}
-			else
-			{
-				if (GameProgress.Queue == 1)
+				if (gameglasscopy.h < playheight / 12 * 11)
 				{
-					combo1 = GenerateCombination(GameProgress, SanFrancisco, &combo1_rect, { 255, 255, 255, 0 }, Compare[0]);
+					glass_recttmp.y = glass_rect.h - i * 0.755;
+					glass_recttmp.h = i * 0.755;
+					gameglasscopy.h = i;
+					i += speed;
+				}
+				else if (gameglasscopy.y < infheight + playheight / 24)
+					gameglasscopy.y += speed;
+				else
+				{
+					GenerateRandValues(GameProgress.DiceValues, GameProgress.Queue);
+					down = true;
+				}
+			}
+			else
+			{
+				if (gameglasscopy.y >= infheight)
+					gameglasscopy.y -= speed;
+				else if (gameglasscopy.h >= 0)
+				{
+					glass_recttmp.y = glass_rect.h - i * 0.755;
+					glass_recttmp.h = i * 0.755;
+					gameglasscopy.h = i;
+					i -= speed;
 				}
 				else
 				{
-					combo2 = GenerateCombination(GameProgress, SanFrancisco, &combo2_rect, { 255, 255, 255, 0 }, Compare[1]);
+					if (GameProgress.Queue == 1)
+					{
+						strcpy_s(GameProgress.Combo1, " ");
+						SDL_DestroyTexture(combo1);
+						combo1 = GenerateCombination(GameProgress, SanFrancisco, &combo1_rect, { 255, 255, 255, 0 }, Compare[0]);
+					}
+					else
+					{
+						strcpy_s(GameProgress.Combo2, " ");
+						SDL_DestroyTexture(combo2);
+						combo2 = GenerateCombination(GameProgress, SanFrancisco, &combo2_rect, { 255, 255, 255, 0 }, Compare[1]);
+					}
+					animation = false;
+					down = false;
 				}
-				animation = false;
-				down = false;
 			}
 		}
-		
-		
 
 		//==============================================================================
 		//отрисовка
@@ -1940,7 +1495,7 @@ void Play(int& mode, Proportions window, Zones Game, Elements& GameProgress, App
 				case 4:
 					dice2 = LoadTextureFromFile("images\\dice4.png");
 					break;
-				case 5:
+				case 5: 
 					dice2 = LoadTextureFromFile("images\\dice5.png");
 					break;
 				case 6:
@@ -1953,9 +1508,11 @@ void Play(int& mode, Proportions window, Zones Game, Elements& GameProgress, App
 				SDL_DestroyTexture(dice1);
 				SDL_DestroyTexture(dice2);
 			}
-			SDL_RenderCopy(ren, combo1, NULL, &combo1_rect);
-			SDL_RenderCopy(ren, combo2, NULL, &combo2_rect);
+
+			
 		}
+		SDL_RenderCopy(ren, combo1, NULL, &combo1_rect);
+		SDL_RenderCopy(ren, combo2, NULL, &combo2_rect);
 
 		if (animation == true)
 			SDL_RenderCopy(ren, glass, &glass_recttmp, &gameglasscopy);
@@ -1994,6 +1551,10 @@ void Play(int& mode, Proportions window, Zones Game, Elements& GameProgress, App
 	SDL_DestroyTexture(combo1);
 	SDL_DestroyTexture(combo2);
 
+	//прогресс
+	PrintGameProgressDataFile(GameProgress);
+	if (GameProgress.GameStatus != 0)
+		previous = true;
 }
 
 void PageLayout(Appearance& Page, Proportions window, Zones& Game)
@@ -2053,44 +1614,6 @@ void PageLayout(Appearance& Page, Proportions window, Zones& Game)
 	Game.Glass = { infwidth / 2 - (playheight / 12 * 11) / 29 * 19 / 2, infheight + playheight / 24, (playheight / 12 * 11) / 29 * 19, playheight / 12 * 11 };
 }
 
-void FPSabout()
-{
-	SDL_Rect objectrect = { 0, 0, 0, 0 };
-	int frame = 0;
-	int frame_count = 6;
-	int cur_frametime = 0;
-	int max_frametime = 1000/12;
-
-	//инициализация
-	int lasttime = SDL_GetTicks();
-	int newtime;
-	int dt = 0;
-
-
-	//логика
-	newtime = SDL_GetTicks();
-	//время между 2-мя кадрами
-	dt = newtime - lasttime;
-	//1000/60 = 16
-	if (dt < 16)
-	{
-		SDL_Delay(16 - dt);
-		newtime = SDL_GetTicks();
-		dt = newtime - lasttime;
-	}
-	lasttime = newtime;
-
-
-	//отрисовка
-	cur_frametime += dt;
-	if (cur_frametime >= max_frametime)
-	{
-		cur_frametime -= max_frametime;
-		frame = (frame + 1) % frame_count;
-		objectrect.x = objectrect.w * frame;
-	}
-}
-
 SDL_Texture* LoadTextureFromFile(const char* filename)
 {
 	SDL_Surface* surface = IMG_Load(filename);
@@ -2124,733 +1647,6 @@ bool ButtonClick(SDL_Rect& rect, int x, int y)
 		return true;
 	else
 		return false;
-}
-
-void GenerateRandValues(int* DiceValues, int queue)
-{
-	srand(time(NULL));
-
-	for (int i = 0; i < dq / 2; i++)
-	{
-		if (queue == 1)
-			DiceValues[i] = rand() % 6 + 1;
-		if (queue == 2)
-			DiceValues[i + 5] = rand() % 6 + 1;
-	}
-}
-
-void Reset(Elements& GameProgress)
-{
-	bool GameStatus = true;
-	GameProgress.Round = 0;
-	char OutcomeText[ams] = " ";
-	char FinalText[ams] = " ";
-	GameProgress.p1 = 0;
-	GameProgress.p2 = 0;
-	GameProgress.Queue = 0;
-	char Combo1[ams] = " ";
-	char Combo2[ams] = " ";
-	GameProgress.ThrowMax = 1;
-	GameProgress.LeadSwap = 0;
-	GameProgress.LeadThrows = 0;
-	for (int i = 0; i < dq; i++)
-	{
-		GameProgress.DiceValues[i] = 0;
-	}
-}
-
-void ReadGameProgressDataFile(Elements& GameProgress)
-{
-	string container;
-
-	ifstream GPFile;
-	GPFile.open("GameProgress.txt", ios_base::in);
-
-	if (!GPFile.is_open())
-		cout << "Ошибка открытия файла! " << endl;
-	else
-	{
-		GPFile >> GameProgress.GameStatus;
-		GPFile >> GameProgress.Round;
-		getline(GPFile, container);
-		getline(GPFile, container);
-		copy(container.begin(), container.end(), GameProgress.OutcomeText);
-		GameProgress.OutcomeText[container.size()] = '\0';
-		getline(GPFile, container);
-		copy(container.begin(), container.end(), GameProgress.FinalText);
-		GameProgress.FinalText[container.size()] = '\0';
-		GPFile >> GameProgress.p1;
-		GPFile >> GameProgress.p2;
-		GPFile >> GameProgress.Queue;
-		getline(GPFile, container);
-		getline(GPFile, container);
-		copy(container.begin(), container.end(), GameProgress.Gambler1);
-		GameProgress.Gambler1[container.size()] = '\0';
-		getline(GPFile, container);
-		copy(container.begin(), container.end(), GameProgress.Gambler2);
-		GameProgress.Gambler2[container.size()] = '\0';
-		getline(GPFile, container);
-		copy(container.begin(), container.end(), GameProgress.Combo1);
-		GameProgress.Combo1[container.size()] = '\0';
-		getline(GPFile, container);
-		copy(container.begin(), container.end(), GameProgress.Combo2);
-		GameProgress.Combo2[container.size()] = '\0';
-		GPFile >> GameProgress.ThrowMax;
-		GPFile >> GameProgress.LeadSwap;
-		GPFile >> GameProgress.LeadThrows;
-		for (int i = 0; i < dq; i++)
-			GPFile >> GameProgress.DiceValues[i];		
-	}
-
-	GPFile.close();
-}
-
-void PrintGameProgressDataFile(Elements GameProgress)
-{
-	ofstream GPFile;
-	GPFile.open("GameProgress1.txt", ios_base::out);
-
-	if (!GPFile.is_open())
-		cout << "Ошибка открытия файла! " << endl;
-	else
-	{
-		GPFile << GameProgress.GameStatus << endl;
-		GPFile << GameProgress.Round << endl;
-		GPFile << GameProgress.OutcomeText << endl;
-		GPFile << GameProgress.FinalText << endl;
-		GPFile << GameProgress.p1 << " ";
-		GPFile << GameProgress.p2 << endl;
-		GPFile << GameProgress.Queue << endl;
-		GPFile << GameProgress.Gambler1 << endl;
-		GPFile << GameProgress.Gambler2 << endl;
-		GPFile << GameProgress.Combo1 << endl;
-		GPFile << GameProgress.Combo2 << endl;
-		GPFile << GameProgress.ThrowMax << endl;
-		GPFile << GameProgress.LeadSwap << endl;
-		GPFile << GameProgress.LeadThrows << endl;
-		for (int i = 0; i < dq; i++)
-			GPFile << GameProgress.DiceValues[i] << " ";
-	}
-
-	GPFile.close();
-}
-
-SDL_Texture* GenerateCombination(Elements GameProgress, TTF_Font* font, SDL_Rect* rect, SDL_Color fg, int &worth)
-{
-	SDL_Texture* texture = NULL;
-	char str[ams];
-	int k = 0;
-
-	if (GameProgress.Round == 0)
-	{
-		for (int i = 0; i <= ut; i++)
-		{
-			if (GameProgress.Queue == 1)
-				k += GameProgress.DiceValues[i];
-			else
-				k += GameProgress.DiceValues[i + 5];
-		}
-		worth = k;
-		_itoa_s(k, str, 10);
-		if (GameProgress.Queue == 1)
-		{
-			strcpy_s(GameProgress.Combo1, str);
-			return texture = GenerateTextureFromText(GameProgress.Combo1, font, rect, fg);
-		}
-		else
-		{
-			strcpy_s(GameProgress.Combo2, str);
-			return texture = GenerateTextureFromText(GameProgress.Combo2, font, rect, fg);
-		}
-	}
-	else
-	{
-		worth = FindBestCombination(GameProgress);
-		if (GameProgress.Queue == 1)
-		{
-			return texture = GenerateTextureFromText(GameProgress.Combo1, font, rect, fg);
-		}
-		else
-		{
-			return texture = GenerateTextureFromText(GameProgress.Combo2, font, rect, fg);
-		}
-	}
-}
-
-int FindBestCombination(Elements &GameProgress)
-{
-	int values[dq / 2];
-	int combo = 0;
-
-	for (int i = 0; i < dq / 2; i++)
-	{
-		if (GameProgress.Queue == 1)
-			values[i] = GameProgress.DiceValues[i];
-		if (GameProgress.Queue == 2)
-			values[i] = GameProgress.DiceValues[i + 5];
-	}
-
-	int Quantities[dq / 2 + 1] = { 0, 0, 0, 0, 0, 0 };
-
-	for (int i = 0; i < dq / 2; i++)
-	{
-		switch (values[i])
-		{
-		case 1:
-			Quantities[0]++;
-			break;
-		case 2:
-			Quantities[1]++;
-			break;
-		case 3:
-			Quantities[2]++;
-			break;
-		case 4:
-			Quantities[3]++;
-			break;
-		case 5:
-			Quantities[4]++;
-			break;
-		case 6:
-			Quantities[5]++;
-			break;
-		}
-	}
-
-	int repeatMax = 0;
-	int repeatTwo = -1;
-	int digit = -1;
-	for (int i = 0; i < dq / 2 + 1; i++)
-	{
-		if (Quantities[i] > repeatMax)
-		{
-			repeatMax = Quantities[i];
-			digit = i;
-		}
-	}
-	for (int i = 0; i < dq / 2 + 1; i++)
-	{
-		if (Quantities[i] == 2 && i != digit)
-			repeatTwo = i;
-	}
-
-
-	switch (repeatMax)
-	{
-	case 5:
-		switch (digit)
-		{
-		case 0:
-			if (GameProgress.Queue == 1)
-				strcpy_s(GameProgress.Combo1, u8"Пять единиц");
-			if (GameProgress.Queue == 2)
-				strcpy_s(GameProgress.Combo2, u8"Пять единиц");
-			return 64;
-		case 1:
-			if (GameProgress.Queue == 1)
-				strcpy_s(GameProgress.Combo1, u8"Пять двоек");
-			if (GameProgress.Queue == 2)
-				strcpy_s(GameProgress.Combo2, u8"Пять двоек");
-			return 65;
-		case 2:
-			if (GameProgress.Queue == 1)
-				strcpy_s(GameProgress.Combo1, u8"Пять троек");
-			if (GameProgress.Queue == 2)
-				strcpy_s(GameProgress.Combo2, u8"Пять троек");
-			return 66;
-		case 3:
-			if (GameProgress.Queue == 1)
-				strcpy_s(GameProgress.Combo1, u8"Пять четверок");
-			if (GameProgress.Queue == 2)
-				strcpy_s(GameProgress.Combo2, u8"Пять четверок");
-			return 67;
-		case 4:
-			if (GameProgress.Queue == 1)
-				strcpy_s(GameProgress.Combo1, u8"Пять пятерок");
-			if (GameProgress.Queue == 2)
-				strcpy_s(GameProgress.Combo2, u8"Пять пятерок");
-			return 68;
-		case 5:
-			if (GameProgress.Queue == 1)
-				strcpy_s(GameProgress.Combo1, u8"Пять шестерок");
-			if (GameProgress.Queue == 2)
-				strcpy_s(GameProgress.Combo2, u8"Пять шестерок");
-			return 69;
-		}
-	case 4:
-		switch (digit)
-		{
-		case 0:
-			if (GameProgress.Queue == 1)
-				strcpy_s(GameProgress.Combo1, u8"Четыре единицы");
-			if (GameProgress.Queue == 2)
-				strcpy_s(GameProgress.Combo2, u8"Четыре единицы");
-			return 58;
-		case 1:
-			if (GameProgress.Queue == 1)
-				strcpy_s(GameProgress.Combo1, u8"Четыре двойки");
-			if (GameProgress.Queue == 2)
-				strcpy_s(GameProgress.Combo2, u8"Четыре двойки");
-			return 57;
-		case 2:
-			if (GameProgress.Queue == 1)
-				strcpy_s(GameProgress.Combo1, u8"Четыре тройки");
-			if (GameProgress.Queue == 2)
-				strcpy_s(GameProgress.Combo2, u8"Четыре тройки");
-			return 60;
-		case 3:
-			if (GameProgress.Queue == 1)
-				strcpy_s(GameProgress.Combo1, u8"Четыре четверки");
-			if (GameProgress.Queue == 2)
-				strcpy_s(GameProgress.Combo2, u8"Четыре четверки");
-			return 61;
-		case 4:
-			if (GameProgress.Queue == 1)
-				strcpy_s(GameProgress.Combo1, u8"Четыре пятерки");
-			if (GameProgress.Queue == 2)
-				strcpy_s(GameProgress.Combo2, u8"Четыре пятерки");
-			return 62;
-		case 5:
-			if (GameProgress.Queue == 1)
-				strcpy_s(GameProgress.Combo1, u8"Четыре шестерки");
-			if (GameProgress.Queue == 2)
-				strcpy_s(GameProgress.Combo2, u8"Четыре шестерки");
-			return 63;
-		}
-	case 3:
-		if (repeatTwo >= 0)
-		{
-			switch (digit)
-			{
-			case 0:
-				switch (repeatTwo)
-				{
-				case 1:
-					if (GameProgress.Queue == 1)
-						strcpy_s(GameProgress.Combo1, u8"Полный дом (1 + 2)");
-					if (GameProgress.Queue == 2)
-						strcpy_s(GameProgress.Combo2, u8"Полный дом (1 + 2)");
-					return 28;
-				case 2:
-					if (GameProgress.Queue == 1)
-						strcpy_s(GameProgress.Combo1, u8"Полный дом (1 + 3)");
-					if (GameProgress.Queue == 2)
-						strcpy_s(GameProgress.Combo2, u8"Полный дом (1 + 3)");
-					return 29;
-				case 3:
-					if (GameProgress.Queue == 1)
-						strcpy_s(GameProgress.Combo1, u8"Полный дом (1 + 4)");
-					if (GameProgress.Queue == 2)
-						strcpy_s(GameProgress.Combo2, u8"Полный дом (1 + 4)");
-					return 30;
-				case 4:
-					if (GameProgress.Queue == 1)
-						strcpy_s(GameProgress.Combo1, u8"Полный дом (1 + 5)");
-					if (GameProgress.Queue == 2)
-						strcpy_s(GameProgress.Combo2, u8"Полный дом (1 + 5)");
-					return 31;
-				case 5:
-					if (GameProgress.Queue == 1)
-						strcpy_s(GameProgress.Combo1, u8"Полный дом (1 + 6)");
-					if (GameProgress.Queue == 2)
-						strcpy_s(GameProgress.Combo2, u8"Полный дом (1 + 6)");
-					return 32;
-				}
-			case 1:
-				switch (repeatTwo)
-				{
-				case 0:
-					if (GameProgress.Queue == 1)
-						strcpy_s(GameProgress.Combo1, u8"Полный дом (2 + 1)");
-					if (GameProgress.Queue == 2)
-						strcpy_s(GameProgress.Combo2, u8"Полный дом (2 + 1)");
-					return 33;
-				case 2:
-					if (GameProgress.Queue == 1)
-						strcpy_s(GameProgress.Combo1, u8"Полный дом (2 + 3)");
-					if (GameProgress.Queue == 2)
-						strcpy_s(GameProgress.Combo2, u8"Полный дом (2 + 3)");
-					return 34;
-				case 3:
-					if (GameProgress.Queue == 1)
-						strcpy_s(GameProgress.Combo1, u8"Полный дом (2 + 4)");
-					if (GameProgress.Queue == 2)
-						strcpy_s(GameProgress.Combo2, u8"Полный дом (2 + 4)");
-					return 35;
-				case 4:
-					if (GameProgress.Queue == 1)
-						strcpy_s(GameProgress.Combo1, u8"Полный дом (2 + 5)");
-					if (GameProgress.Queue == 2)
-						strcpy_s(GameProgress.Combo2, u8"Полный дом (2 + 5)");
-					return 36;
-				case 5:
-					if (GameProgress.Queue == 1)
-						strcpy_s(GameProgress.Combo1, u8"Полный дом (2 + 6)");
-					if (GameProgress.Queue == 2)
-						strcpy_s(GameProgress.Combo2, u8"Полный дом (2 + 6)");
-					return 37;
-				}
-			case 2:
-				switch (repeatTwo)
-				{
-				case 0:
-					if (GameProgress.Queue == 1)
-						strcpy_s(GameProgress.Combo1, u8"Полный дом (3 + 1)");
-					if (GameProgress.Queue == 2)
-						strcpy_s(GameProgress.Combo2, u8"Полный дом (3 + 1)");
-					return 38;
-				case 1:
-					if (GameProgress.Queue == 1)
-						strcpy_s(GameProgress.Combo1, u8"Полный дом (3 + 2)");
-					if (GameProgress.Queue == 2)
-						strcpy_s(GameProgress.Combo2, u8"Полный дом (3 + 2)");
-					return 39;
-				case 3:
-					if (GameProgress.Queue == 1)
-						strcpy_s(GameProgress.Combo1, u8"Полный дом (3 + 4)");
-					if (GameProgress.Queue == 2)
-						strcpy_s(GameProgress.Combo2, u8"Полный дом (3 + 4)");
-					return 40;
-				case 4:
-					if (GameProgress.Queue == 1)
-						strcpy_s(GameProgress.Combo1, u8"Полный дом (3 + 5)");
-					if (GameProgress.Queue == 2)
-						strcpy_s(GameProgress.Combo2, u8"Полный дом (3 + 5)");
-					return 41;
-				case 5:
-					if (GameProgress.Queue == 1)
-						strcpy_s(GameProgress.Combo1, u8"Полный дом (3 + 6)");
-					if (GameProgress.Queue == 2)
-						strcpy_s(GameProgress.Combo2, u8"Полный дом (3 + 6)");
-					return 42;
-				}
-			case 3:
-				switch (repeatTwo)
-				{
-				case 0:
-					if (GameProgress.Queue == 1)
-						strcpy_s(GameProgress.Combo1, u8"Полный дом (4 + 1)");
-					if (GameProgress.Queue == 2)
-						strcpy_s(GameProgress.Combo2, u8"Полный дом (4 + 1)");
-					return 43;
-				case 1:
-					if (GameProgress.Queue == 1)
-						strcpy_s(GameProgress.Combo1, u8"Полный дом (4 + 2)");
-					if (GameProgress.Queue == 2)
-						strcpy_s(GameProgress.Combo2, u8"Полный дом (4 + 2)");
-					return 44;
-				case 2:
-					if (GameProgress.Queue == 1)
-						strcpy_s(GameProgress.Combo1, u8"Полный дом (4 + 3)");
-					if (GameProgress.Queue == 2)
-						strcpy_s(GameProgress.Combo2, u8"Полный дом (4 + 3)");
-					return 45;
-				case 4:
-					if (GameProgress.Queue == 1)
-						strcpy_s(GameProgress.Combo1, u8"Полный дом (4 + 5)");
-					if (GameProgress.Queue == 2)
-						strcpy_s(GameProgress.Combo2, u8"Полный дом (4 + 5)");
-					return 46;
-				case 5:
-					if (GameProgress.Queue == 1)
-						strcpy_s(GameProgress.Combo1, u8"Полный дом (4 + 6)");
-					if (GameProgress.Queue == 2)
-						strcpy_s(GameProgress.Combo2, u8"Полный дом (4 + 6)");
-					return 47;
-				}
-			case 4:
-				switch (repeatTwo)
-				{
-				case 0:
-					if (GameProgress.Queue == 1)
-						strcpy_s(GameProgress.Combo1, u8"Полный дом (5 + 1)");
-					if (GameProgress.Queue == 2)
-						strcpy_s(GameProgress.Combo2, u8"Полный дом (5 + 1)");
-					return 48;
-				case 1:
-					if (GameProgress.Queue == 1)
-						strcpy_s(GameProgress.Combo1, u8"Полный дом (5 + 2)");
-					if (GameProgress.Queue == 2)
-						strcpy_s(GameProgress.Combo2, u8"Полный дом (5 + 2)");
-					return 49;
-				case 2:
-					if (GameProgress.Queue == 1)
-						strcpy_s(GameProgress.Combo1, u8"Полный дом (5 + 3)");
-					if (GameProgress.Queue == 2)
-						strcpy_s(GameProgress.Combo2, u8"Полный дом (5 + 3)");
-					return 50;
-				case 3:
-					if (GameProgress.Queue == 1)
-						strcpy_s(GameProgress.Combo1, u8"Полный дом (5 + 4)");
-					if (GameProgress.Queue == 2)
-						strcpy_s(GameProgress.Combo2, u8"Полный дом (5 + 4)");
-					return 51;
-				case 5:
-					if (GameProgress.Queue == 1)
-						strcpy_s(GameProgress.Combo1, u8"Полный дом (5 + 6)");
-					if (GameProgress.Queue == 2)
-						strcpy_s(GameProgress.Combo2, u8"Полный дом (5 + 6)");
-					return 52;
-				}
-			case 5:
-				switch (repeatTwo)
-				{
-				case 0:
-					if (GameProgress.Queue == 1)
-						strcpy_s(GameProgress.Combo1, u8"Полный дом (6 + 1)");
-					if (GameProgress.Queue == 2)
-						strcpy_s(GameProgress.Combo2, u8"Полный дом (6 + 1)");
-					return 53;
-				case 1:
-					if (GameProgress.Queue == 1)
-						strcpy_s(GameProgress.Combo1, u8"Полный дом (6 + 2)");
-					if (GameProgress.Queue == 2)
-						strcpy_s(GameProgress.Combo2, u8"Полный дом (6 + 2)");
-					return 54;
-				case 2:
-					if (GameProgress.Queue == 1)
-						strcpy_s(GameProgress.Combo1, u8"Полный дом (6 + 3)");
-					if (GameProgress.Queue == 2)
-						strcpy_s(GameProgress.Combo2, u8"Полный дом (6 + 3)");
-					return 55;
-				case 3:
-					if (GameProgress.Queue == 1)
-						strcpy_s(GameProgress.Combo1, u8"Полный дом (6 + 4)");
-					if (GameProgress.Queue == 2)
-						strcpy_s(GameProgress.Combo2, u8"Полный дом (6 + 4)");
-					return 56;
-				case 4:
-					if (GameProgress.Queue == 1)
-						strcpy_s(GameProgress.Combo1, u8"Полный дом (6 + 5)");
-					if (GameProgress.Queue == 2)
-						strcpy_s(GameProgress.Combo2, u8"Полный дом (6 + 5)");
-					return 57;
-				}
-			}
-		}
-		else
-		{
-			switch (digit)
-			{
-			case 0:
-				if (GameProgress.Queue == 1)
-					strcpy_s(GameProgress.Combo1, u8"Три единицы");
-				if (GameProgress.Queue == 2)
-					strcpy_s(GameProgress.Combo2, u8"Три единицы");
-				return 22;
-			case 1:
-				if (GameProgress.Queue == 1)
-					strcpy_s(GameProgress.Combo1, u8"Три двойки");
-				if (GameProgress.Queue == 2)
-					strcpy_s(GameProgress.Combo2, u8"Три двойки");
-				return 23;
-			case 2:
-				if (GameProgress.Queue == 1)
-					strcpy_s(GameProgress.Combo1, u8"Три тройки");
-				if (GameProgress.Queue == 2)
-					strcpy_s(GameProgress.Combo2, u8"Три тройки");
-				return 24;
-			case 3:
-				if (GameProgress.Queue == 1)
-					strcpy_s(GameProgress.Combo1, u8"Три четверки");
-				if (GameProgress.Queue == 2)
-					strcpy_s(GameProgress.Combo2, u8"Три четверки");
-				return 25;
-			case 4:
-				if (GameProgress.Queue == 1)
-					strcpy_s(GameProgress.Combo1, u8"Три пятерки");
-				if (GameProgress.Queue == 2)
-					strcpy_s(GameProgress.Combo2, u8"Три пятерки");
-				return 26;
-			case 5:
-				if (GameProgress.Queue == 1)
-					strcpy_s(GameProgress.Combo1, u8"Три шестерки");
-				if (GameProgress.Queue == 2)
-					strcpy_s(GameProgress.Combo2, u8"Три шестерки");
-				return 27;
-			}
-		}
-	case 2:
-		if (repeatTwo >= 0)
-		{
-			switch (digit)
-			{
-			case 0:
-				switch (repeatTwo)
-				{
-				case 1:
-					if (GameProgress.Queue == 1)
-						strcpy_s(GameProgress.Combo1, u8"Пара единиц + Пара двоек");
-					if (GameProgress.Queue == 2)
-						strcpy_s(GameProgress.Combo2, u8"Пара единиц + Пара двоек");
-					return 7;
-				case 2:
-					if (GameProgress.Queue == 1)
-						strcpy_s(GameProgress.Combo1, u8"Пара единиц + Пара двоек");
-					if (GameProgress.Queue == 2)
-						strcpy_s(GameProgress.Combo2, u8"Пара единиц + Пара двоек");
-					return 8;
-				case 3:
-					if (GameProgress.Queue == 1)
-						strcpy_s(GameProgress.Combo1, u8"Пара единиц + Пара троек");
-					if (GameProgress.Queue == 2)
-						strcpy_s(GameProgress.Combo2, u8"Пара единиц + Пара троек");
-					return 9;
-				case 4:
-					if (GameProgress.Queue == 1)
-						strcpy_s(GameProgress.Combo1, u8"Пара единиц + Пара четверок");
-					if (GameProgress.Queue == 2)
-						strcpy_s(GameProgress.Combo2, u8"Пара единиц + Пара четверок");
-					return 10;
-				case 5:
-					if (GameProgress.Queue == 1)
-						strcpy_s(GameProgress.Combo1, u8"Пара единиц + Пара пятерок");
-					if (GameProgress.Queue == 2)
-						strcpy_s(GameProgress.Combo2, u8"Пара единиц + Пара пятерок");
-					return 11;
-				}
-			case 1:
-				switch (repeatTwo)
-				{
-				case 2:
-					if (GameProgress.Queue == 1)
-						strcpy_s(GameProgress.Combo1, u8"Пара двоек + Пара троек");
-					if (GameProgress.Queue == 2)
-						strcpy_s(GameProgress.Combo2, u8"Пара двоек + Пара троек");
-					return 12;
-				case 3:
-					if (GameProgress.Queue == 1)
-						strcpy_s(GameProgress.Combo1, u8"Пара двоек + Пара четверок");
-					if (GameProgress.Queue == 2)
-						strcpy_s(GameProgress.Combo2, u8"Пара двоек + Пара четверок");
-					return 13;
-				case 4:
-					if (GameProgress.Queue == 1)
-						strcpy_s(GameProgress.Combo1, u8"Пара двоек + Пара пятерок");
-					if (GameProgress.Queue == 2)
-						strcpy_s(GameProgress.Combo2, u8"Пара двоек + Пара пятерок");
-					return 14;
-				case 5:
-					if (GameProgress.Queue == 1)
-						strcpy_s(GameProgress.Combo1, u8"Пара двоек + Пара шестерок");
-					if (GameProgress.Queue == 2)
-						strcpy_s(GameProgress.Combo2, u8"Пара двоек + Пара шестерок");
-					return 15;
-				}
-			case 2:
-				switch (repeatTwo)
-				{
-				case 3:
-					if (GameProgress.Queue == 1)
-						strcpy_s(GameProgress.Combo1, u8"Пара троек + Пара четверок");
-					if (GameProgress.Queue == 2)
-						strcpy_s(GameProgress.Combo2, u8"Пара троек + Пара четверок");
-					return 16;
-				case 4:
-					if (GameProgress.Queue == 1)
-						strcpy_s(GameProgress.Combo1, u8"Пара троек + Пара пятерок");
-					if (GameProgress.Queue == 2)
-						strcpy_s(GameProgress.Combo2, u8"Пара троек + Пара пятерок");
-					return 17;
-				case 5:
-					if (GameProgress.Queue == 1)
-						strcpy_s(GameProgress.Combo1, u8"Пара троек + Пара шестерок");
-					if (GameProgress.Queue == 2)
-						strcpy_s(GameProgress.Combo2, u8"Пара троек + Пара шестерок");
-					return 18;
-				}
-			case 3:
-				switch (repeatTwo)
-				{
-				case 4:
-					if (GameProgress.Queue == 1)
-						strcpy_s(GameProgress.Combo1, u8"Пара четверок + Пара пятерок");
-					if (GameProgress.Queue == 2)
-						strcpy_s(GameProgress.Combo2, u8"Пара четверок + Пара пятерок");
-					return 19;
-				case 5:
-					if (GameProgress.Queue == 1)
-						strcpy_s(GameProgress.Combo1, u8"Пара четверок + Пара шестерок");
-					if (GameProgress.Queue == 2)
-						strcpy_s(GameProgress.Combo2, u8"Пара четверок + Пара шестерок");
-					return 20;
-				}
-			case 4:
-				switch (repeatTwo)
-				{
-				case 5:
-					if (GameProgress.Queue == 1)
-						strcpy_s(GameProgress.Combo1, u8"Пара пятерок + Пара шестерок");
-					if (GameProgress.Queue == 2)
-						strcpy_s(GameProgress.Combo2, u8"Пара пятерок + Пара шестерок");
-					return 21;
-				}
-			}
-		}
-		else
-		{
-			switch (digit)
-			{
-			case 0:
-				if (GameProgress.Queue == 1)
-					strcpy_s(GameProgress.Combo1, u8"Пара единиц");
-				if (GameProgress.Queue == 2)
-					strcpy_s(GameProgress.Combo2, u8"Пара единиц");
-				return 1;
-			case 1:
-				if (GameProgress.Queue == 1)
-					strcpy_s(GameProgress.Combo1, u8"Пара двоек");
-				if (GameProgress.Queue == 2)
-					strcpy_s(GameProgress.Combo2, u8"Пара двоек");
-				return 2;
-			case 2:
-				if (GameProgress.Queue == 1)
-					strcpy_s(GameProgress.Combo1, u8"Пара троек");
-				if (GameProgress.Queue == 2)
-					strcpy_s(GameProgress.Combo2, u8"Пара троек");
-				return 3;
-			case 3:
-				if (GameProgress.Queue == 1)
-					strcpy_s(GameProgress.Combo1, u8"Пара четверок");
-				if (GameProgress.Queue == 2)
-					strcpy_s(GameProgress.Combo2, u8"Пара четверок");
-				return 4;
-			case 4:
-				if (GameProgress.Queue == 1)
-					strcpy_s(GameProgress.Combo1, u8"Пара пятерок");
-				if (GameProgress.Queue == 2)
-					strcpy_s(GameProgress.Combo2, u8"Пара пятерок");
-				return 5;
-			case 5:
-				if (GameProgress.Queue == 1)
-					strcpy_s(GameProgress.Combo1, u8"Пара шестерок");
-				if (GameProgress.Queue == 2)
-					strcpy_s(GameProgress.Combo2, u8"Пара шестерок");
-				return 6;
-			}
-		}
-	case 1:
-		if (GameProgress.Queue == 1)
-			strcpy_s(GameProgress.Combo1, u8"Ничего");
-		if (GameProgress.Queue == 2)
-			strcpy_s(GameProgress.Combo2, u8"Ничего");
-		return 0;
-	}
-}
-
-void FPSControl()
-{
-	static int time = 0;
-	while (true)
-	{
-		if (clock() - time >= 1000 / 90.)
-		{
-			time = clock();
-			break;
-		}
-		else
-			SDL_Delay(1);
-	}
 }
 
 //void ChangeText(char* text, const char* newtext)

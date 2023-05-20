@@ -102,32 +102,23 @@ struct Control
 
 void Init(Proportions &window);
 void DeInit(int error);
-void work();
 
 bool ButtonClick(SDL_Rect &rect, int x, int y);
 SDL_Texture* LoadTextureFromFile(const char* filename);
 SDL_Texture* GenerateTextureFromText(char* str, TTF_Font* font, SDL_Rect* rect, SDL_Color fg);
 void PageLayout(Appearance& Page, Proportions window, Zones& Game);
-void FPSabout();
-void GenerateRandValues(int* DiceValues, int queue);
-void Reset(Elements& GameProgress);
 
-void ReadGameProgressDataFile(Elements& GameProgress);
-void PrintGameProgressDataFile(Elements GameProgress);
-
-SDL_Texture* GenerateCombination(Elements GameProgress, TTF_Font* font, SDL_Rect* rect, SDL_Color fg, int &worth);
-int FindBestCombination(Elements &GameProgress);
-void FPSControl();
 //void ChangeText(char* text, const char* newtext);
 //int Input_Data(SDL_Window* window, SDL_Renderer* renderer, SDL_Rect& inputRect);
 
-void MainMenu(int &mode, Appearance Page, Proportions window);
+void MainMenu(int &mode, Appearance Page, Proportions window, bool& previous);
 void ExitMenu(int& mode, Appearance Page, Proportions window);
 void Rules(int& mode, Appearance Page, Proportions window);
 void Settings(int& mode, Appearance Page, Proportions window);
-void PauseMenu(int& mode, Appearance Page, Proportions window);
+void CheckPoint(int& mode, Appearance Page, Proportions window, bool& previous);
 void Identification(int& mode, Appearance Page, Proportions window, char* gambler1, char* gambler2);
-void Play(int& mode, Proportions window, Zones Game, Elements& GameProgress, Appearance Page);
+void Play(int& mode, Proportions window, Zones Game, Elements& GameProgress, Appearance Page, bool& previous);
+void PauseMenu(int& mode, Appearance Page, Proportions window);
 
 
 //кнопки под соотношение 12:5, ibv2 13:5
