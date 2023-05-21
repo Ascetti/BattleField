@@ -24,7 +24,7 @@
 //blue for greenlines
 #define b 184
 //array max size
-#define ams 50
+#define ams 100
 //dice quantity
 #define dq 10
 //speed
@@ -97,7 +97,7 @@ struct Control
 {
 	int Volume;
 	bool Music;
-	bool Sound;
+	bool Sounds;
 };
 
 void Init(Proportions &window);

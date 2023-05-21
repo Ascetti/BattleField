@@ -334,6 +334,12 @@ void Rules(int& mode, Appearance Page, Proportions window)
 				quit = true;
 				mode = 0;
 				break;
+			case SDL_KEYDOWN:
+				if (event.key.keysym.scancode == SDL_SCANCODE_ESCAPE)
+				{
+					quit = true;
+				}
+				break;
 			case SDL_MOUSEBUTTONDOWN:
 				if (ButtonClick(Page.StepBack, event.button.x, event.button.y) && event.button.button == SDL_BUTTON_LEFT)
 				{
@@ -377,10 +383,55 @@ void Settings(int& mode, Appearance Page, Proportions window)
 	}
 
 	char theme[] = u8"Настройки";
+	char chapter1text[] = u8"Звук";
+	char chapter2text[] = u8"Клашиви";
+	char volumetext[] = u8"Общая Громкость";
+	char musictext[] = u8"Музыка";
+	char soundstext[] = u8"Игровые звуки";
+	char action1[] = u8"Назад / выйти           Esc";
+	char action2[] = u8"Бросить                        T";
+	char action3[] = u8"Пропустить                   S";
+
+
 	SDL_Rect heading_rect;
+	SDL_Rect chapter1_rect;
+	SDL_Rect chapter2_rect;
+	SDL_Rect volume_rect;
+	SDL_Rect music_rect;
+	SDL_Rect sounds_rect;
+	SDL_Rect to_back_rect;
+	SDL_Rect to_throw_rect;
+	SDL_Rect to_skip_rect;
 
 	SDL_Texture* stepback = LoadTextureFromFile("images\\stepback.png");
 	SDL_Texture* heading = GenerateTextureFromText(theme, Franklin, &heading_rect, { 255, 255, 255, 0 });
+	SDL_Texture* chapter1 = GenerateTextureFromText(chapter1text, Franklin, &chapter1_rect, { r, g, b, 0 });
+	SDL_Texture* chapter2 = GenerateTextureFromText(chapter2text, Franklin, &chapter2_rect, { r, g, b, 0 });
+	SDL_Texture* volume = GenerateTextureFromText(volumetext, Franklin, &volume_rect, { 255, 255, 255, 0 });
+	SDL_Texture* music = GenerateTextureFromText(musictext, Franklin, &music_rect, { 255, 255, 255, 0 });
+	SDL_Texture* sounds = GenerateTextureFromText(soundstext, Franklin, &sounds_rect, { 255, 255, 255, 0 });
+	SDL_Texture* to_back = GenerateTextureFromText(action1, Franklin, &to_back_rect, { 255, 255, 255, 0 });
+	SDL_Texture* to_throw = GenerateTextureFromText(action2, Franklin, &to_throw_rect, { 255, 255, 255, 0 });
+	SDL_Texture* to_skip = GenerateTextureFromText(action3, Franklin, &to_skip_rect, { 255, 255, 255, 0 });
+
+	heading_rect.x = window.width / 2 - heading_rect.w / 2;
+	heading_rect.y = Page.UnderlineIndent / 2 - heading_rect.h / 2;
+	chapter1_rect.x = cv * 2;
+	chapter1_rect.y = Page.UnderlineIndent + cv * 2 + heading_rect.h / 2;
+	volume_rect.x = window.width / 3 + cv * 2;
+	volume_rect.y = Page.UnderlineIndent + cv * 2 + volume_rect.h / 2;
+	music_rect.x = volume_rect.x;
+	music_rect.y = volume_rect.y + music_rect.h;
+	sounds_rect.x = music_rect.x;
+	sounds_rect.y = music_rect.y + sounds_rect.h;
+	chapter2_rect.x = cv * 2;
+	chapter2_rect.y = sounds_rect.y + heading_rect.h * 2;
+	to_back_rect.x = window.width / 3 + chapter2_rect.x;
+	to_back_rect.y = chapter2_rect.y;
+	to_throw_rect.x = to_back_rect.x;
+	to_throw_rect.y = to_back_rect.y + to_throw_rect.h;
+	to_skip_rect.x = to_throw_rect.x;
+	to_skip_rect.y = to_throw_rect.y + to_skip_rect.h;
 
 	SDL_Event event;
 	bool quit = false;
@@ -395,6 +446,12 @@ void Settings(int& mode, Appearance Page, Proportions window)
 				quit = true;
 				mode = 0;
 				break;
+			case SDL_KEYDOWN:
+				if (event.key.keysym.scancode == SDL_SCANCODE_ESCAPE)
+				{
+					quit = true;
+				}
+				break;
 			case SDL_MOUSEBUTTONDOWN:
 				if (ButtonClick(Page.StepBack, event.button.x, event.button.y) && event.button.button == SDL_BUTTON_LEFT)
 				{
@@ -404,23 +461,38 @@ void Settings(int& mode, Appearance Page, Proportions window)
 			}
 
 		}
+
 		SDL_SetRenderDrawColor(ren, 0, 0, 0, 0);
 		SDL_RenderClear(ren);
 
 		SDL_SetRenderDrawColor(ren, r, g, b, 0);
 		for (int i = 0; i < ut; i++)
 			SDL_RenderDrawLine(ren, 0, Page.UnderlineIndent + i, window.width, Page.UnderlineIndent + i);
-
-		heading_rect.x = window.width / 2 - heading_rect.w / 2;
-		heading_rect.y = Page.UnderlineIndent / 2 - heading_rect.h / 2;
+				
 		SDL_RenderCopy(ren, heading, NULL, &heading_rect);
 		SDL_RenderCopy(ren, stepback, NULL, &Page.StepBack);
+		SDL_RenderCopy(ren, chapter1, NULL, &chapter1_rect);
+		SDL_RenderCopy(ren, chapter2, NULL, &chapter2_rect);
+		SDL_RenderCopy(ren, volume, NULL, &volume_rect);
+		SDL_RenderCopy(ren, music, NULL, &music_rect);
+		SDL_RenderCopy(ren, sounds, NULL, &sounds_rect);
+		SDL_RenderCopy(ren, to_back, NULL, &to_back_rect);
+		SDL_RenderCopy(ren, to_throw, NULL, &to_throw_rect);
+		SDL_RenderCopy(ren, to_skip, NULL, &to_skip_rect);
 
 		SDL_RenderPresent(ren);
 	}
 
 	SDL_DestroyTexture(stepback);
 	SDL_DestroyTexture(heading);
+	SDL_DestroyTexture(chapter1);
+	SDL_DestroyTexture(chapter2);
+	SDL_DestroyTexture(volume);
+	SDL_DestroyTexture(music);
+	SDL_DestroyTexture(sounds);
+	SDL_DestroyTexture(to_back);
+	SDL_DestroyTexture(to_throw);
+	SDL_DestroyTexture(to_skip);
 
 	TTF_CloseFont(Franklin);
 }
@@ -574,6 +646,13 @@ void Identification(int& mode, Appearance Page, Proportions window, char* gamble
 			case SDL_QUIT:
 				quit = true;
 				mode = 0;
+				break;
+			case SDL_KEYDOWN:
+				if (event.key.keysym.scancode == SDL_SCANCODE_ESCAPE)
+				{
+					quit = true;
+					mode = 1;
+				}
 				break;
 			case SDL_MOUSEBUTTONDOWN:
 				if (ButtonClick(Page.SeventhTypeButton, event.button.x, event.button.y) && event.button.button == SDL_BUTTON_LEFT)
@@ -778,7 +857,7 @@ void Play(int& mode, Proportions window, Zones Game, Elements& GameProgress, App
 	int playheight = height - infheight * 3;
 #pragma endregion
 
-	#pragma region Statc
+	#pragma region Static
 	char to_throw[] = u8"Бросить";
 	char to_skip[] = u8"Пропустить ход";
 	char tips_l1[] = u8"Комбинации:";
@@ -788,7 +867,6 @@ void Play(int& mode, Proportions window, Zones Game, Elements& GameProgress, App
 	char tips_l5[] = u8"Полный дом (3+2)";
 	char tips_l6[] = u8"Четыре одинаковых";
 	char tips_l7[] = u8"Пять одинаковых";
-
 	char isleading[] = u8"*ходит";
 
 	SDL_Rect ThrowButton1_rect;
@@ -1047,19 +1125,12 @@ void Play(int& mode, Proportions window, Zones Game, Elements& GameProgress, App
 				//first skip button
 				if (ButtonClick(Game.SkipButton1, event.button.x, event.button.y) && event.button.button == SDL_BUTTON_LEFT && GameProgress.Queue == 1 && animation == false && GameProgress.LeadThrows != 0 && end == false)
 				{
-					
-					if (GameProgress.LeadSwap < 2)
-					{
-						change = true;
-					}
+					change = true;
 				}
 				//second skip button
 				if (ButtonClick(Game.SkipButton2, event.button.x, event.button.y) && event.button.button == SDL_BUTTON_LEFT && GameProgress.Queue == 2 && animation == false && GameProgress.LeadThrows != 0 && end == false)
 				{
-					if (GameProgress.LeadSwap < 2)
-					{
-						change = true;
-					}
+					change = true;
 				}
 				break;
 			}
@@ -1167,8 +1238,16 @@ void Play(int& mode, Proportions window, Zones Game, Elements& GameProgress, App
 								strcpy_s(GameProgress.OutcomeText, u8"Победил");
 								strcpy_s(GameProgress.FinalText, GameProgress.Gambler1);
 
-								GameProgress.Queue = 1;
-								gameglasscopy.x = infwidth / 2 - (playheight / 12 * 11) / 29 * 19 / 2;
+								if (GameProgress.Queue == 1)
+								{
+									GameProgress.Queue = 1;
+									gameglasscopy.x = infwidth / 2 - (playheight / 12 * 11) / 29 * 19 / 2;
+								}
+								else if (GameProgress.Queue == 2)
+								{
+									GameProgress.Queue = 2;
+									gameglasscopy.x = width - infwidth / 2 - (playheight / 12 * 11) / 29 * 19 / 2;
+								}
 							}
 
 							SDL_DestroyTexture(outcome);
@@ -1208,8 +1287,16 @@ void Play(int& mode, Proportions window, Zones Game, Elements& GameProgress, App
 								strcpy_s(GameProgress.OutcomeText, u8"Победил");
 								strcpy_s(GameProgress.FinalText, GameProgress.Gambler2);
 								
-								GameProgress.Queue = 2;
-								gameglasscopy.x = width - infwidth / 2 - (playheight / 12 * 11) / 29 * 19 / 2;
+								if (GameProgress.Queue == 1)
+								{
+									GameProgress.Queue = 1;
+									gameglasscopy.x = infwidth / 2 - (playheight / 12 * 11) / 29 * 19 / 2;
+								}
+								else if (GameProgress.Queue == 2)
+								{
+									GameProgress.Queue = 2;
+									gameglasscopy.x = width - infwidth / 2 - (playheight / 12 * 11) / 29 * 19 / 2;
+								}
 							}
 
 							SDL_DestroyTexture(phase);
@@ -1769,7 +1856,7 @@ bool ButtonClick(SDL_Rect& rect, int x, int y)
 //		SDL_Color fore_color = { 0, 0, 0 };
 //		SDL_Color back_color = { 255, 255, 255 };
 //		SDL_Surface* textSurface = TTF_RenderText_Shaded(font, inputText, fore_color, back_color);
-//		SDL_Texture* textTexture = get_text_texture(renderer, inputText, font, red_text);
+//		SDL_Texture* textTexture = (renderer, inputText, font, red_text);
 //		textRect.w = textSurface->w;
 //		textRect.h = textSurface->h;
 //		SDL_SetRenderDrawColor(renderer, 64, 64, 64, 0);
