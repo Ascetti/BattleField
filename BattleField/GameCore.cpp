@@ -110,7 +110,7 @@ void PrintGameProgressDataFile(Elements GameProgress)
 	GPFile.close();
 }
 
-SDL_Texture* GenerateCombination(Elements GameProgress, TTF_Font* font, SDL_Rect* rect, SDL_Color fg, int& worth)
+SDL_Texture* GenerateCombination(Elements& GameProgress, TTF_Font* font, SDL_Rect* rect, SDL_Color fg, int& worth)
 {
 	SDL_Texture* texture = NULL;
 	char str[ams] = " ";
