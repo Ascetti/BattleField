@@ -12,8 +12,7 @@ int main(int argc, char** argv)
 	Control SettingsData;
 
 	ReadGameProgressDataFile(GameProgress);
-
-	PrintGameProgressDataFile(GameProgress);
+	ReadSettingsFile(SettingsData);
 
 	if (GameProgress.GameStatus == 0)
 	{

@@ -120,7 +120,8 @@ void Identification(int& mode, Appearance Page, Proportions window, char* gamble
 void Play(int& mode, Proportions window, Zones Game, Elements& GameProgress, Appearance Page, bool& previous);
 void PauseMenu(int& mode, Appearance Page, Proportions window);
 
-
+void ReadSettingsFile(Control& SettingsData);
+void PrintSettingsFile(Control& SettingsData);
 //кнопки под соотношение 12:5, ibv2 13:5
 //цвет зеленого r = 5, g = 255, b = 184
 //стакан 5 к 3

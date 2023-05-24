@@ -381,14 +381,22 @@ void Settings(int& mode, Appearance Page, Proportions window)
 		system("pause");
 		DeInit(1);
 	}
+	int TextFontSize = window.height / 17;
+	TTF_Font* SanFrancisco = TTF_OpenFont("fonts\\San Francisco.ttf", TextFontSize);
+	if (SanFrancisco == NULL)
+	{
+		cout << "Couldn't open TTF: San Francisco! Error: " << SDL_GetError();
+		system("pause");
+		DeInit(1);
+	}
 
 	char theme[] = u8"Настройки";
 	char chapter1text[] = u8"Звук";
-	char chapter2text[] = u8"Клашиви";
+	char chapter2text[] = u8"Клавиши";
 	char volumetext[] = u8"Общая Громкость";
 	char musictext[] = u8"Музыка";
 	char soundstext[] = u8"Игровые звуки";
-	char action1[] = u8"Назад / выйти           Esc";
+	char action1[] = u8"Назад / закончить игру           Esc";
 	char action2[] = u8"Бросить                        T";
 	char action3[] = u8"Пропустить                   S";
 
@@ -405,14 +413,14 @@ void Settings(int& mode, Appearance Page, Proportions window)
 
 	SDL_Texture* stepback = LoadTextureFromFile("images\\stepback.png");
 	SDL_Texture* heading = GenerateTextureFromText(theme, Franklin, &heading_rect, { 255, 255, 255, 0 });
-	SDL_Texture* chapter1 = GenerateTextureFromText(chapter1text, Franklin, &chapter1_rect, { r, g, b, 0 });
-	SDL_Texture* chapter2 = GenerateTextureFromText(chapter2text, Franklin, &chapter2_rect, { r, g, b, 0 });
-	SDL_Texture* volume = GenerateTextureFromText(volumetext, Franklin, &volume_rect, { 255, 255, 255, 0 });
-	SDL_Texture* music = GenerateTextureFromText(musictext, Franklin, &music_rect, { 255, 255, 255, 0 });
-	SDL_Texture* sounds = GenerateTextureFromText(soundstext, Franklin, &sounds_rect, { 255, 255, 255, 0 });
-	SDL_Texture* to_back = GenerateTextureFromText(action1, Franklin, &to_back_rect, { 255, 255, 255, 0 });
-	SDL_Texture* to_throw = GenerateTextureFromText(action2, Franklin, &to_throw_rect, { 255, 255, 255, 0 });
-	SDL_Texture* to_skip = GenerateTextureFromText(action3, Franklin, &to_skip_rect, { 255, 255, 255, 0 });
+	SDL_Texture* chapter1 = GenerateTextureFromText(chapter1text, SanFrancisco, &chapter1_rect, { r, g, b, 0 });
+	SDL_Texture* chapter2 = GenerateTextureFromText(chapter2text, SanFrancisco, &chapter2_rect, { r, g, b, 0 });
+	SDL_Texture* volume = GenerateTextureFromText(volumetext, SanFrancisco, &volume_rect, { 255, 255, 255, 0 });
+	SDL_Texture* music = GenerateTextureFromText(musictext, SanFrancisco, &music_rect, { 255, 255, 255, 0 });
+	SDL_Texture* sounds = GenerateTextureFromText(soundstext, SanFrancisco, &sounds_rect, { 255, 255, 255, 0 });
+	SDL_Texture* to_back = GenerateTextureFromText(action1, SanFrancisco, &to_back_rect, { 255, 255, 255, 0 });
+	SDL_Texture* to_throw = GenerateTextureFromText(action2, SanFrancisco, &to_throw_rect, { 255, 255, 255, 0 });
+	SDL_Texture* to_skip = GenerateTextureFromText(action3, SanFrancisco, &to_skip_rect, { 255, 255, 255, 0 });
 
 	heading_rect.x = window.width / 2 - heading_rect.w / 2;
 	heading_rect.y = Page.UnderlineIndent / 2 - heading_rect.h / 2;
@@ -495,6 +503,7 @@ void Settings(int& mode, Appearance Page, Proportions window)
 	SDL_DestroyTexture(to_skip);
 
 	TTF_CloseFont(Franklin);
+	TTF_CloseFont(SanFrancisco);
 }
 
 void PauseMenu(int& mode, Appearance Page, Proportions window)
@@ -1734,6 +1743,42 @@ bool ButtonClick(SDL_Rect& rect, int x, int y)
 		return true;
 	else
 		return false;
+}
+
+void ReadSettingsFile(Control &SettingsData)
+{
+	string container;
+
+	ifstream SFile;
+	SFile.open("Settings.txt", ios_base::in);
+
+	if (!SFile.is_open())
+		cout << "Ошибка открытия файла! " << endl;
+	else
+	{
+		SFile >> SettingsData.Volume;
+		SFile >> SettingsData.Music;
+		SFile >> SettingsData.Sounds;
+	}
+
+	SFile.close();
+}
+
+void PrintSettingsFile(Control& SettingsData)
+{
+	ofstream SFile;
+	SFile.open("Settings.txt", ios_base::out);
+
+	if (!SFile.is_open())
+		cout << "Ошибка открытия файла! " << endl;
+	else
+	{
+		SFile << SettingsData.Volume << endl;
+		SFile << SettingsData.Music << endl;
+		SFile << SettingsData.Sounds << endl;
+	}
+
+	SFile.close();
 }
 
 //void ChangeText(char* text, const char* newtext)
