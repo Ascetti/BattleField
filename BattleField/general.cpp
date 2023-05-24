@@ -397,8 +397,6 @@ void Settings(int& mode, Appearance Page, Proportions window)
 	char musictext[] = u8"Музыка";
 	char soundstext[] = u8"Игровые звуки";
 	char action1[] = u8"Назад / закончить игру           Esc";
-	char action2[] = u8"Бросить                        T";
-	char action3[] = u8"Пропустить                   S";
 
 
 	SDL_Rect heading_rect;
@@ -408,8 +406,6 @@ void Settings(int& mode, Appearance Page, Proportions window)
 	SDL_Rect music_rect;
 	SDL_Rect sounds_rect;
 	SDL_Rect to_back_rect;
-	SDL_Rect to_throw_rect;
-	SDL_Rect to_skip_rect;
 
 	SDL_Texture* stepback = LoadTextureFromFile("images\\stepback.png");
 	SDL_Texture* heading = GenerateTextureFromText(theme, Franklin, &heading_rect, { 255, 255, 255, 0 });
@@ -419,9 +415,7 @@ void Settings(int& mode, Appearance Page, Proportions window)
 	SDL_Texture* music = GenerateTextureFromText(musictext, SanFrancisco, &music_rect, { 255, 255, 255, 0 });
 	SDL_Texture* sounds = GenerateTextureFromText(soundstext, SanFrancisco, &sounds_rect, { 255, 255, 255, 0 });
 	SDL_Texture* to_back = GenerateTextureFromText(action1, SanFrancisco, &to_back_rect, { 255, 255, 255, 0 });
-	SDL_Texture* to_throw = GenerateTextureFromText(action2, SanFrancisco, &to_throw_rect, { 255, 255, 255, 0 });
-	SDL_Texture* to_skip = GenerateTextureFromText(action3, SanFrancisco, &to_skip_rect, { 255, 255, 255, 0 });
-
+	
 	heading_rect.x = window.width / 2 - heading_rect.w / 2;
 	heading_rect.y = Page.UnderlineIndent / 2 - heading_rect.h / 2;
 	chapter1_rect.x = cv * 2;
@@ -436,10 +430,6 @@ void Settings(int& mode, Appearance Page, Proportions window)
 	chapter2_rect.y = sounds_rect.y + heading_rect.h * 2;
 	to_back_rect.x = window.width / 3 + chapter2_rect.x;
 	to_back_rect.y = chapter2_rect.y;
-	to_throw_rect.x = to_back_rect.x;
-	to_throw_rect.y = to_back_rect.y + to_throw_rect.h;
-	to_skip_rect.x = to_throw_rect.x;
-	to_skip_rect.y = to_throw_rect.y + to_skip_rect.h;
 
 	SDL_Event event;
 	bool quit = false;
@@ -485,8 +475,6 @@ void Settings(int& mode, Appearance Page, Proportions window)
 		SDL_RenderCopy(ren, music, NULL, &music_rect);
 		SDL_RenderCopy(ren, sounds, NULL, &sounds_rect);
 		SDL_RenderCopy(ren, to_back, NULL, &to_back_rect);
-		SDL_RenderCopy(ren, to_throw, NULL, &to_throw_rect);
-		SDL_RenderCopy(ren, to_skip, NULL, &to_skip_rect);
 
 		SDL_RenderPresent(ren);
 	}
@@ -499,8 +487,6 @@ void Settings(int& mode, Appearance Page, Proportions window)
 	SDL_DestroyTexture(music);
 	SDL_DestroyTexture(sounds);
 	SDL_DestroyTexture(to_back);
-	SDL_DestroyTexture(to_throw);
-	SDL_DestroyTexture(to_skip);
 
 	TTF_CloseFont(Franklin);
 	TTF_CloseFont(SanFrancisco);
