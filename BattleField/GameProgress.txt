@@ -1,14 +1,14 @@
-1
+0
 0
  
  
 0 0
-2
-Player 1
-Player 2
-25
+1
+ knasgakf
+ afv afsl valv
+ 
  
 1
-1
 0
-5 4 6 6 4 0 0 0 0 0 
+0
+0 0 0 0 0 0 0 0 0 0 

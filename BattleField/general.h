@@ -9,6 +9,8 @@
 #include <string>
 #include <windows.h>
 
+using namespace std;
+
 //correction value
 #define cv 14
 //underlibe thickness
@@ -30,7 +32,9 @@
 //speed
 #define speed 7
 
-using namespace std;
+const char BackgroundMusic[] = "audio\\background2.mp3";
+const char ClickSound[] = "audio\\click.mp3";
+const char MixingSound[] = "audio\\dicenglass.mp3";
 
 struct Proportions
 {
@@ -95,9 +99,9 @@ struct Elements
 
 struct Control
 {
-	int Volume;
-	bool Music;
-	bool Sounds;
+	int Volume = 7;
+	bool Music = 0;
+	bool Sounds = 0;
 };
 
 void Init(Proportions &window);
@@ -108,20 +112,22 @@ SDL_Texture* LoadTextureFromFile(const char* filename);
 SDL_Texture* GenerateTextureFromText(char* str, TTF_Font* font, SDL_Rect* rect, SDL_Color fg);
 void PageLayout(Appearance& Page, Proportions window, Zones& Game);
 
-//void ChangeText(char* text, const char* newtext);
-//int Input_Data(SDL_Window* window, SDL_Renderer* renderer, SDL_Rect& inputRect);
+void PlayMusic(const char* name, int volume);
+void PlayActSound(const char* name, int volume);
 
-void MainMenu(int &mode, Appearance Page, Proportions window, bool& previous);
-void ExitMenu(int& mode, Appearance Page, Proportions window);
-void Rules(int& mode, Appearance Page, Proportions window);
-void Settings(int& mode, Appearance Page, Proportions window);
-void CheckPoint(int& mode, Appearance Page, Proportions window, bool& previous);
-void Identification(int& mode, Appearance Page, Proportions window, char* gambler1, char* gambler2);
-void Play(int& mode, Proportions window, Zones Game, Elements& GameProgress, Appearance Page, bool& previous);
-void PauseMenu(int& mode, Appearance Page, Proportions window);
+void MainMenu(int &mode, Appearance Page, Proportions window, Control& SettingsData, bool& previous);
+void ExitMenu(int& mode, Appearance Page, Proportions window, Control& SettingsData);
+void Rules(int& mode, Appearance Page, Proportions window, Control& SettingsData);
+void Settings(int& mode, Appearance Page, Proportions window, Control& SettingsData);
+void CheckPoint(int& mode, Appearance Page, Proportions window, Control& SettingsData, bool& previous);
+void Identification(int& mode, Appearance Page, Proportions window, Control& SettingsData, Elements& GameProgress);
+void Play(int& mode, Proportions window, Zones Game, Elements& GameProgress, Appearance Page, Control& SettingsData, bool& previous);
+void PauseMenu(int& mode, Appearance Page, Proportions window, Control& SettingsData);
 
 void ReadSettingsFile(Control& SettingsData);
 void PrintSettingsFile(Control& SettingsData);
+
+
 //кнопки под соотношение 12:5, ibv2 13:5
 //цвет зеленого r = 5, g = 255, b = 184
 //стакан 5 к 3

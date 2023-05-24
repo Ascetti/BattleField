@@ -38,6 +38,14 @@ void Init(Proportions &window)
 		DeInit(1);
 	}
 
+	Mix_Init(0);
+	if (Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 2048) < 0)
+	{
+		cout << "Couldn't init SDL_Mixer! Error: " << Mix_GetError();
+		system("pause");
+		DeInit(1);
+	}
+
 	SDL_DisplayMode dm;
 
 	if (SDL_GetDesktopDisplayMode(0, &dm) != 0)
@@ -66,14 +74,11 @@ void Init(Proportions &window)
 		DeInit(1);
 	}
 
-	Mix_Init(0);
-	Mix_OpenAudio(22050, MIX_DEFAULT_FORMAT, 2, 1024);
 }
 
 void DeInit(int error)
 {
-	Mix_CloseAudio();
-	Mix_Quit();
+	
 
 	if (ren != NULL)
 		SDL_DestroyRenderer(ren);
@@ -81,13 +86,17 @@ void DeInit(int error)
 	if (win != NULL)
 		SDL_DestroyWindow(win);
 
+	Mix_FreeMusic(fon);
+	Mix_FreeChunk(sound);
+	Mix_CloseAudio();
+	Mix_Quit();
 	TTF_Quit();
 	IMG_Quit();
 	SDL_Quit();
 	exit(0);
 }
 
-void MainMenu(int& mode, Appearance Page, Proportions window, bool &previous)
+void MainMenu(int& mode, Appearance Page, Proportions window, Control& SettingsData, bool &previous)
 {
 	TTF_Font* Franklin = TTF_OpenFont("fonts\\Franklin.ttf", Page.HeadingFontSize);
 	if (Franklin == NULL)
@@ -135,6 +144,8 @@ void MainMenu(int& mode, Appearance Page, Proportions window, bool &previous)
 						mode = 6;
 					}
 
+					if (SettingsData.Sounds != 0)
+						PlayActSound(ClickSound, SettingsData.Volume);
 				}
 				if (ButtonClick(Page.SecondTypeButton, event.button.x, event.button.y))
 				{
@@ -142,12 +153,16 @@ void MainMenu(int& mode, Appearance Page, Proportions window, bool &previous)
 					tap = 2;*/
 					/*quit = true;
 					mode = 3;*/
-					Rules(mode, Page, window);
+
+					if (SettingsData.Sounds != 0)
+						PlayActSound(ClickSound, SettingsData.Volume);
+
+					Rules(mode, Page, window, SettingsData);
 					if (mode == 0)
 					{
 						quit = true;
 						mode = 0;						
-					}
+					}					
 				}					
 				if (ButtonClick(Page.ThirdTypeButton, event.button.x, event.button.y))
 				{
@@ -155,7 +170,11 @@ void MainMenu(int& mode, Appearance Page, Proportions window, bool &previous)
 					tap = 3;*/
 					/*quit = true;
 					mode = 4;*/
-					Settings(mode, Page, window);
+
+					if (SettingsData.Sounds != 0)
+						PlayActSound(ClickSound, SettingsData.Volume);
+
+					Settings(mode, Page, window, SettingsData);
 					if (mode == 0)
 					{
 						mode = 0;
@@ -168,6 +187,9 @@ void MainMenu(int& mode, Appearance Page, Proportions window, bool &previous)
 					tap = 4;*/
 					quit = true;
 					mode = 2;
+
+					if (SettingsData.Sounds != 0)
+						PlayActSound(ClickSound, SettingsData.Volume);
 				}
 			}
 			break;
@@ -214,7 +236,7 @@ void MainMenu(int& mode, Appearance Page, Proportions window, bool &previous)
 	TTF_CloseFont(Franklin);
 }
 
-void ExitMenu(int& mode, Appearance Page, Proportions window)
+void ExitMenu(int& mode, Appearance Page, Proportions window, Control& SettingsData)
 {
 	TTF_Font* Franklin = TTF_OpenFont("fonts\\Franklin.ttf", Page.HeadingFontSize);
 	if (Franklin == NULL)
@@ -262,11 +284,17 @@ void ExitMenu(int& mode, Appearance Page, Proportions window)
 				{
 					quit = true;
 					mode = 0;
+
+					if (SettingsData.Sounds != 0)
+						PlayActSound(ClickSound, SettingsData.Volume);
 				}
 				if (ButtonClick(Page.SixthTypeButton, event.button.x, event.button.y))
 				{
 					quit = true;
 					mode = 1;
+
+					if (SettingsData.Sounds != 0)
+						PlayActSound(ClickSound, SettingsData.Volume);
 				}
 				break;
 			}
@@ -303,7 +331,7 @@ void ExitMenu(int& mode, Appearance Page, Proportions window)
 	TTF_CloseFont(Franklin);
 }
 
-void Rules(int& mode, Appearance Page, Proportions window)
+void Rules(int& mode, Appearance Page, Proportions window, Control& SettingsData)
 {
 	TTF_Font* Franklin = TTF_OpenFont("fonts\\Franklin.ttf", Page.HeadingFontSize);
 	if (Franklin == NULL)
@@ -344,6 +372,9 @@ void Rules(int& mode, Appearance Page, Proportions window)
 				if (ButtonClick(Page.StepBack, event.button.x, event.button.y) && event.button.button == SDL_BUTTON_LEFT)
 				{
 					quit = true;
+
+					if (SettingsData.Sounds != 0)
+						PlayActSound(ClickSound, SettingsData.Volume);
 				}
 				break;
 			}
@@ -372,7 +403,7 @@ void Rules(int& mode, Appearance Page, Proportions window)
 	TTF_CloseFont(Franklin);
 } 
 
-void Settings(int& mode, Appearance Page, Proportions window)
+void Settings(int& mode, Appearance Page, Proportions window, Control& SettingsData)
 {
 	TTF_Font* Franklin = TTF_OpenFont("fonts\\Franklin.ttf", Page.HeadingFontSize);
 	if (Franklin == NULL)
@@ -396,8 +427,9 @@ void Settings(int& mode, Appearance Page, Proportions window)
 	char volumetext[] = u8"Общая Громкость";
 	char musictext[] = u8"Музыка";
 	char soundstext[] = u8"Игровые звуки";
-	char action1[] = u8"Назад / закончить игру           Esc";
+	char action1[] = u8"Назад                                  Esc";
 
+	int increase = TextFontSize / 2;
 
 	SDL_Rect heading_rect;
 	SDL_Rect chapter1_rect;
@@ -406,6 +438,13 @@ void Settings(int& mode, Appearance Page, Proportions window)
 	SDL_Rect music_rect;
 	SDL_Rect sounds_rect;
 	SDL_Rect to_back_rect;
+	SDL_Rect switchbutton1_rect;
+	SDL_Rect switchbutton2_rect;
+	SDL_Rect plus_rect;
+	SDL_Rect minus_rect;
+	SDL_Rect bar_rect;
+	SDL_Rect loudness_rect;
+
 
 	SDL_Texture* stepback = LoadTextureFromFile("images\\stepback.png");
 	SDL_Texture* heading = GenerateTextureFromText(theme, Franklin, &heading_rect, { 255, 255, 255, 0 });
@@ -415,6 +454,10 @@ void Settings(int& mode, Appearance Page, Proportions window)
 	SDL_Texture* music = GenerateTextureFromText(musictext, SanFrancisco, &music_rect, { 255, 255, 255, 0 });
 	SDL_Texture* sounds = GenerateTextureFromText(soundstext, SanFrancisco, &sounds_rect, { 255, 255, 255, 0 });
 	SDL_Texture* to_back = GenerateTextureFromText(action1, SanFrancisco, &to_back_rect, { 255, 255, 255, 0 });
+	SDL_Texture* switchbutton1 = NULL;
+	SDL_Texture* switchbutton2 = NULL;
+	SDL_Texture* minus = LoadTextureFromFile("images\\m.png");
+	SDL_Texture* plus = LoadTextureFromFile("images\\p.png");
 	
 	heading_rect.x = window.width / 2 - heading_rect.w / 2;
 	heading_rect.y = Page.UnderlineIndent / 2 - heading_rect.h / 2;
@@ -430,6 +473,12 @@ void Settings(int& mode, Appearance Page, Proportions window)
 	chapter2_rect.y = sounds_rect.y + heading_rect.h * 2;
 	to_back_rect.x = window.width / 3 + chapter2_rect.x;
 	to_back_rect.y = chapter2_rect.y;
+	switchbutton1_rect = { window.width / 3 * 2, music_rect.y, music_rect.h * 2, music_rect.h };
+	switchbutton2_rect = { window.width / 3 * 2, sounds_rect.y, sounds_rect.h * 2, sounds_rect.h };
+
+	minus_rect = { window.width / 3 * 2 , volume_rect.y, TextFontSize, TextFontSize };
+	plus_rect = { minus_rect.x + minus_rect.w + TextFontSize * 5 + ut * 2, volume_rect.y, TextFontSize, TextFontSize };
+	loudness_rect = { minus_rect.x + minus_rect.w + ut, volume_rect.y, increase * SettingsData.Volume + 1, TextFontSize };
 
 	SDL_Event event;
 	bool quit = false;
@@ -454,14 +503,110 @@ void Settings(int& mode, Appearance Page, Proportions window)
 				if (ButtonClick(Page.StepBack, event.button.x, event.button.y) && event.button.button == SDL_BUTTON_LEFT)
 				{
 					quit = true;
+					if (SettingsData.Sounds != 0)
+						PlayActSound(ClickSound, SettingsData.Volume);
+				}
+				if (ButtonClick(switchbutton1_rect, event.button.x, event.button.y) && event.button.button == SDL_BUTTON_LEFT)
+				{
+					if (SettingsData.Music == 1)
+					{
+						SettingsData.Music = 0;
+					}
+					else
+					{
+						SettingsData.Music = 1;
+					}
+
+					if (Mix_PlayingMusic() == 0)
+					{
+						PlayMusic(BackgroundMusic, SettingsData.Volume);
+					}
+					else
+					{
+						if (Mix_PausedMusic() == 1)
+						{
+							Mix_ResumeMusic();
+						}
+						else
+						{
+							Mix_PauseMusic();
+						}
+					}
+
+					if (SettingsData.Sounds != 0)
+						PlayActSound(ClickSound, SettingsData.Volume);
+				}
+				if (ButtonClick(switchbutton2_rect, event.button.x, event.button.y) && event.button.button == SDL_BUTTON_LEFT)
+				{
+
+					if (SettingsData.Sounds == 1)
+					{
+						SettingsData.Sounds = 0;
+					}
+					else
+					{
+						SettingsData.Sounds = 1;
+					}
+
+					if (SettingsData.Sounds != 0)
+						PlayActSound(ClickSound, SettingsData.Volume);
+				}
+				if (ButtonClick(minus_rect, event.button.x, event.button.y) && event.button.button == SDL_BUTTON_LEFT)
+				{
+					if (loudness_rect.w - increase >= 0)
+					{
+						loudness_rect.w -= increase;
+						SettingsData.Volume--;
+						Mix_VolumeMusic(SettingsData.Volume * 12);
+						Mix_VolumeChunk(sound, SettingsData.Volume * 12);
+					}
+				}
+				if (ButtonClick(plus_rect, event.button.x, event.button.y) && event.button.button == SDL_BUTTON_LEFT)
+				{
+					if (loudness_rect.w + increase <= TextFontSize * 5)
+					{
+						loudness_rect.w += increase;
+						SettingsData.Volume++;
+						Mix_VolumeMusic(SettingsData.Volume * 12);
+						Mix_VolumeChunk(sound, SettingsData.Volume * 12);
+					}
 				}
 				break;
 			}
 
 		}
 
+		//музыка
+		if (SettingsData.Music == 1)
+		{
+			switchbutton1 = LoadTextureFromFile("images\\switchon.png");
+		}
+		else
+		{
+			switchbutton1 = LoadTextureFromFile("images\\switchoff.png");
+		}
+		//звуки
+		if (SettingsData.Sounds == 1)
+		{
+			switchbutton2 = LoadTextureFromFile("images\\switchon.png");
+		}
+		else
+		{
+			switchbutton2 = LoadTextureFromFile("images\\switchoff.png");
+		}
+
+
 		SDL_SetRenderDrawColor(ren, 0, 0, 0, 0);
 		SDL_RenderClear(ren);
+
+		SDL_SetRenderDrawColor(ren, 255, 255, 255, 0);
+		for (int i = 0; i < ut; i++)
+		{
+			bar_rect = { minus_rect.x + minus_rect.w + ut + i, volume_rect.y + i, TextFontSize * 5 - 2 * i, TextFontSize - 2 * i };
+
+			SDL_RenderDrawRect(ren, &bar_rect);
+		}
+		SDL_RenderFillRect(ren, &loudness_rect);
 
 		SDL_SetRenderDrawColor(ren, r, g, b, 0);
 		for (int i = 0; i < ut; i++)
@@ -475,6 +620,10 @@ void Settings(int& mode, Appearance Page, Proportions window)
 		SDL_RenderCopy(ren, music, NULL, &music_rect);
 		SDL_RenderCopy(ren, sounds, NULL, &sounds_rect);
 		SDL_RenderCopy(ren, to_back, NULL, &to_back_rect);
+		SDL_RenderCopy(ren, switchbutton1, NULL, &switchbutton1_rect);
+		SDL_RenderCopy(ren, switchbutton2, NULL, &switchbutton2_rect);
+		SDL_RenderCopy(ren, minus, NULL, &minus_rect);
+		SDL_RenderCopy(ren, plus, NULL, &plus_rect);
 
 		SDL_RenderPresent(ren);
 	}
@@ -487,12 +636,19 @@ void Settings(int& mode, Appearance Page, Proportions window)
 	SDL_DestroyTexture(music);
 	SDL_DestroyTexture(sounds);
 	SDL_DestroyTexture(to_back);
+	SDL_DestroyTexture(switchbutton1);
+	SDL_DestroyTexture(switchbutton2);
+	SDL_DestroyTexture(minus);
+	SDL_DestroyTexture(plus);
 
 	TTF_CloseFont(Franklin);
 	TTF_CloseFont(SanFrancisco);
+
+	//сохранение в файл
+	PrintSettingsFile(SettingsData);
 }
 
-void PauseMenu(int& mode, Appearance Page, Proportions window)
+void PauseMenu(int& mode, Appearance Page, Proportions window, Control& SettingsData)
 {
 	TTF_Font* Franklin = TTF_OpenFont("fonts\\San Francisco.ttf", Page.HeadingFontSize);
 	if (Franklin == NULL)
@@ -530,31 +686,39 @@ void PauseMenu(int& mode, Appearance Page, Proportions window)
 				if (ButtonClick(Page.FirstTypeButton, event.button.x, event.button.y) && event.button.button == SDL_BUTTON_LEFT)
 				{
 					quit = true;
+
+					if (SettingsData.Sounds != 0)
+						PlayActSound(ClickSound, SettingsData.Volume);
 				}
 				if (ButtonClick(Page.SecondTypeButton, event.button.x, event.button.y))
 				{
-					Settings(mode, Page, window);
+					if (SettingsData.Sounds != 0)
+						PlayActSound(ClickSound, SettingsData.Volume);
+
+					Settings(mode, Page, window, SettingsData);
 					if (mode == 0)
 					{
 						quit = true;
-						//mode = 0;
 					}
 				}
 				if (ButtonClick(Page.ThirdTypeButton, event.button.x, event.button.y))
 				{
-					/*quit = true;
-					mode = 3;*/
-					Rules(mode, Page, window);
+					if (SettingsData.Sounds != 0)
+						PlayActSound(ClickSound, SettingsData.Volume);
+
+					Rules(mode, Page, window, SettingsData);
 					if (mode == 0)
 					{
 						quit = true;
-						//mode = 0;
 					}
 				}
 				if (ButtonClick(Page.FourthTypeButton, event.button.x, event.button.y))
 				{
 					quit = true;
 					mode = 1;
+
+					if (SettingsData.Sounds != 0)
+						PlayActSound(ClickSound, SettingsData.Volume);
 				}
 				break;
 			}
@@ -587,7 +751,7 @@ void PauseMenu(int& mode, Appearance Page, Proportions window)
 	TTF_CloseFont(Franklin);
 }
 
-void Identification(int& mode, Appearance Page, Proportions window, char* gambler1, char* gambler2)
+void Identification(int& mode, Appearance Page, Proportions window, Control& SettingsData, Elements& GameProgress)
 {
 	TTF_Font* Franklin = TTF_OpenFont("fonts\\Franklin.ttf", Page.HeadingFontSize);
 	if (Franklin == NULL)
@@ -606,13 +770,11 @@ void Identification(int& mode, Appearance Page, Proportions window, char* gamble
 	}
 
 	char theme[] = u8"Имена игроков";
-	char message[] = u8"Введите имена игроков:";
+	char message[] = u8"Введите имена игроков (допускаются только английские символы):";
 	char warning1[] = u8"В случае пропуска этого этапа идентификации";
 	char warning2[] = u8"игроки получат имена по умолчанию: Player 1 и Player 2";
 	char user1[] = u8"1 Игрок";
 	char user2[] = u8"2 Игрок";
-	//char currentname1[] = "Player 1";
-	//char currentname2[] = "Player 2";
 	SDL_Rect heading_rect;
 	SDL_Rect nameinput_rect;
 	SDL_Rect notice1_rect;
@@ -629,9 +791,46 @@ void Identification(int& mode, Appearance Page, Proportions window, char* gamble
 	SDL_Texture* player1 = GenerateTextureFromText(user1, SanFrancisco, &player1_rect, { r, g, b, 0 });
 	SDL_Texture* player2 = GenerateTextureFromText(user2, SanFrancisco, &player2_rect, { r, g, b, 0 });
 
+	heading_rect.x = window.width / 2 - heading_rect.w / 2;
+	heading_rect.y = Page.UnderlineIndent / 2 - heading_rect.h / 2;
+	nameinput_rect.x = Page.UnderlineIndent / 2;
+	nameinput_rect.y = Page.UnderlineIndent * 5 / 3 - nameinput_rect.h / 2;
+	notice1_rect.x = Page.UnderlineIndent / 2;
+	notice1_rect.y = window.height - Page.UnderlineIndent - notice1_rect.h;
+	notice2_rect.x = Page.UnderlineIndent / 2;
+	notice2_rect.y = window.height - Page.UnderlineIndent;
+	player1_rect.x = Page.UnderlineIndent / 2;
+	player1_rect.y = Page.UnderlineIndent * 3;
+	player2_rect.x = Page.UnderlineIndent / 2;
+	player2_rect.y = Page.UnderlineIndent * 4;
+
 	SDL_Event event;
 	bool quit = false;
 
+	int MaxInput = 14;
+	int InputIndex1 = 1;
+	int InputIndex2 = 1;
+	char text[2] = u8"|";
+	bool exit = false;
+	bool StartInput1 = false, StartInput2 = false;
+	bool EndInput1 = true, EndInput2 = true;
+
+	SDL_Rect gambler1_rect;
+	SDL_Rect gambler2_rect;
+	SDL_Rect InputText1_rect;
+	SDL_Rect InputText2_rect;
+
+	SDL_Texture* gambler1 = NULL;
+	SDL_Texture* gambler2 = NULL;
+
+
+	char InputText1[ams] = " ";
+	char InputText2[ams] = " ";
+
+
+	gambler1_rect = { window.width / 5 + cv, player1_rect.y + player1_rect.h / 2 - TextFontSize / 2, 0, 0 };
+	gambler2_rect = { window.width / 5 + cv, player2_rect.y + player2_rect.h / 2 - TextFontSize / 2, 0, 0 };
+	
 	while (!quit)
 	{
 		while (SDL_PollEvent(&event))
@@ -642,47 +841,145 @@ void Identification(int& mode, Appearance Page, Proportions window, char* gamble
 				quit = true;
 				mode = 0;
 				break;
+			case SDL_MOUSEBUTTONDOWN:
+				if (ButtonClick(Page.SeventhTypeButton, event.button.x, event.button.y) && event.button.button == SDL_BUTTON_LEFT)
+				{
+					quit = true;
+					mode = 7;
+
+					if (SettingsData.Sounds != 0)
+						PlayActSound(ClickSound, SettingsData.Volume);
+				}
+				if (ButtonClick(Page.StepBack, event.button.x, event.button.y) && event.button.button == SDL_BUTTON_LEFT)
+				{
+					quit = true;
+					mode = 1;
+
+					if (SettingsData.Sounds != 0)
+						PlayActSound(ClickSound, SettingsData.Volume);
+				}
+				if (ButtonClick(InputText1_rect, event.button.x, event.button.y) && event.button.button == SDL_BUTTON_LEFT)
+				{
+					StartInput1 = true;
+					EndInput1 = false;
+					StartInput2 = false;
+					EndInput2 = true;
+				}
+				if (ButtonClick(InputText2_rect, event.button.x, event.button.y) && event.button.button == SDL_BUTTON_LEFT)
+				{
+					StartInput2 = true;
+					EndInput2 = false;
+					StartInput1 = false;
+					EndInput1 = true;
+				}
+				if (!ButtonClick(InputText1_rect, event.button.x, event.button.y) && !ButtonClick(InputText2_rect, event.button.x, event.button.y) && event.button.button == SDL_BUTTON_LEFT)
+				{
+					StartInput1 = false;
+					EndInput1 = true;
+					StartInput2 = false;
+					EndInput2 = true;
+				}
+				break;
 			case SDL_KEYDOWN:
 				if (event.key.keysym.scancode == SDL_SCANCODE_ESCAPE)
 				{
 					quit = true;
 					mode = 1;
 				}
-				break;
-			case SDL_MOUSEBUTTONDOWN:
-				if (ButtonClick(Page.SeventhTypeButton, event.button.x, event.button.y) && event.button.button == SDL_BUTTON_LEFT)
+				if (StartInput1)
 				{
-					quit = true;
-					mode = 7;
+					if (event.key.keysym.sym == SDLK_BACKSPACE)
+					{
+						if (InputIndex1 != 1)
+						{
+							InputText1[InputIndex1 - 1] = '\0';
+							InputIndex1 -= 1;
+							if (gambler1 != NULL)
+							{
+								SDL_DestroyTexture(gambler1);
+							}
+							gambler1 = GenerateTextureFromText(InputText1, SanFrancisco, &gambler1_rect, { 255, 255, 255, 255});
+						}
+					}
+					if ((event.key.keysym.sym == ' ') || (event.key.keysym.sym == '_') || ((event.key.keysym.sym >= '0') && (event.key.keysym.sym <= '9')) || ((event.key.keysym.sym >= 'a') && (event.key.keysym.sym <= 'z')) || ((event.key.keysym.sym >= 'A') && (event.key.keysym.sym <= 'Z')))
+					{
+						if (InputIndex1 < MaxInput)
+						{
+							InputText1[InputIndex1] = (char)event.key.keysym.sym;
+							InputIndex1 += 1;
+							InputText1[InputIndex1] = '\0';
+							if (gambler1 != NULL)
+							{
+								SDL_DestroyTexture(gambler1);
+							}
+							gambler1 = GenerateTextureFromText(InputText1, SanFrancisco, &gambler1_rect, { 255, 255, 255, 255 });
+						}
+					}
+					if (event.key.keysym.sym == SDLK_RETURN)
+					{
+						StartInput1 = false;
+					}
 				}
-				if (ButtonClick(Page.StepBack, event.button.x, event.button.y) && event.button.button == SDL_BUTTON_LEFT)
+				if (StartInput2)
 				{
-					quit = true;
-					mode = 1;
+					if (event.key.keysym.sym == SDLK_BACKSPACE)
+					{
+						if (InputIndex2 != 1)
+						{
+							InputText2[InputIndex2 - 1] = '\0';
+							InputIndex2 -= 1;
+							if (gambler2 != NULL)
+							{
+								SDL_DestroyTexture(gambler2);
+							}
+							gambler2 = GenerateTextureFromText(InputText2, SanFrancisco, &gambler2_rect, { 255, 255, 255, 255 });
+						}
+					}
+					if ((event.key.keysym.sym == ' ') || ((event.key.keysym.sym >= '0') && (event.key.keysym.sym <= '9')) || ((event.key.keysym.sym >= 'a') && (event.key.keysym.sym <= 'z')))
+					{
+
+						if (InputIndex2 < MaxInput)
+						{
+							InputText2[InputIndex2] = (char)event.key.keysym.sym;
+							InputIndex2 += 1;
+							InputText2[InputIndex2] = '\0';
+							if (gambler2 != NULL)
+							{
+								SDL_DestroyTexture(gambler2);
+							}
+							gambler2 = GenerateTextureFromText(InputText2, SanFrancisco, &gambler2_rect, { 255, 255, 255, 255 });
+						}
+					}
+					if (event.key.keysym.sym == SDLK_RETURN)
+					{
+						StartInput2 = false;
+					}
 				}
 				break;
 			}
 
 		}
+
+
 		SDL_SetRenderDrawColor(ren, 0, 0, 0, 0);
 		SDL_RenderClear(ren);
+
+		SDL_SetRenderDrawColor(ren, 255, 255, 255, 0);
+		for (int i = 0; i < ut; i++)
+		{
+			InputText1_rect = { window.width / 5 + i, player1_rect.y + player1_rect.h / 2 - Page.HeadingFontSize / 2 + i, window.width / 5 * 3 - 2 * i, Page.HeadingFontSize - 2 * i };
+			InputText2_rect = { window.width / 5 + i, player2_rect.y + player2_rect.h / 2 - Page.HeadingFontSize / 2 + i, window.width / 5 * 3 - 2 * i, Page.HeadingFontSize - 2 * i };
+
+			SDL_RenderDrawRect(ren, &InputText1_rect);
+			SDL_RenderDrawRect(ren, &InputText2_rect);
+		}
+
 
 		SDL_SetRenderDrawColor(ren, r, g, b, 0);
 		for (int i = 0; i < ut; i++)
 			SDL_RenderDrawLine(ren, 0, Page.UnderlineIndent + i, window.width, Page.UnderlineIndent + i);
 
-		heading_rect.x = window.width / 2 - heading_rect.w / 2;
-		heading_rect.y = Page.UnderlineIndent / 2 - heading_rect.h / 2;
-		nameinput_rect.x = Page.UnderlineIndent / 2;
-		nameinput_rect.y = Page.UnderlineIndent * 5 / 3 - nameinput_rect.h / 2;
-		notice1_rect.x = Page.UnderlineIndent / 2;
-		notice1_rect.y = window.height - Page.UnderlineIndent - notice1_rect.h;
-		notice2_rect.x = Page.UnderlineIndent / 2;
-		notice2_rect.y = window.height - Page.UnderlineIndent;
-		player1_rect.x = Page.UnderlineIndent / 2;
-		player1_rect.y = Page.UnderlineIndent * 3;
-		player2_rect.x = Page.UnderlineIndent / 2;
-		player2_rect.y = Page.UnderlineIndent * 4 ;
+		
 
 
 		SDL_RenderCopy(ren, player1, NULL, &player1_rect);
@@ -693,6 +990,9 @@ void Identification(int& mode, Appearance Page, Proportions window, char* gamble
 		SDL_RenderCopy(ren, notice2, NULL, &notice2_rect);
 		SDL_RenderCopy(ren, stepback, NULL, &Page.StepBack);
 		SDL_RenderCopy(ren, skip, NULL, &Page.SeventhTypeButton);
+ 		SDL_RenderCopy(ren, gambler1, NULL, &gambler1_rect);
+		SDL_RenderCopy(ren, gambler2, NULL, &gambler2_rect);
+		
 
 		SDL_RenderPresent(ren);
 	}
@@ -705,12 +1005,32 @@ void Identification(int& mode, Appearance Page, Proportions window, char* gamble
 	SDL_DestroyTexture(skip);
 	SDL_DestroyTexture(stepback);
 	SDL_DestroyTexture(heading);
+	SDL_DestroyTexture(gambler1);
+	SDL_DestroyTexture(gambler2);
 
 	TTF_CloseFont(SanFrancisco);
 	TTF_CloseFont(Franklin);
+
+	if (InputText1 != " ")
+	{
+		strcpy_s(GameProgress.Gambler1, InputText1);
+	}
+	else
+	{
+		strcpy_s(GameProgress.Gambler1, "Player 1");
+	}
+
+	if (InputText2 != " ")
+	{
+		strcpy_s(GameProgress.Gambler2, InputText2);
+	}
+	else
+	{
+		strcpy_s(GameProgress.Gambler2, "Player 2");
+	}
 }
 
-void CheckPoint(int& mode, Appearance Page, Proportions window, bool& previous)
+void CheckPoint(int& mode, Appearance Page, Proportions window, Control& SettingsData, bool& previous)
 {
 	TTF_Font* Franklin = TTF_OpenFont("fonts\\Franklin.ttf", Page.HeadingFontSize);
 	if (Franklin == NULL)
@@ -759,12 +1079,18 @@ void CheckPoint(int& mode, Appearance Page, Proportions window, bool& previous)
 					quit = true;
 					previous = false;
 					mode = 6;
+
+					if (SettingsData.Sounds != 0)
+						PlayActSound(ClickSound, SettingsData.Volume);
 				}
 				if (ButtonClick(Page.SixthTypeButton, event.button.x, event.button.y))
 				{
 					quit = true;
 					previous = true;
 					mode = 7;
+
+					if (SettingsData.Sounds != 0)
+						PlayActSound(ClickSound, SettingsData.Volume);
 				}
 				break;
 			}
@@ -798,7 +1124,7 @@ void CheckPoint(int& mode, Appearance Page, Proportions window, bool& previous)
 	TTF_CloseFont(Franklin);
 }
 
-void Play(int& mode, Proportions window, Zones Game, Elements& GameProgress, Appearance Page, bool &previous)
+void Play(int& mode, Proportions window, Zones Game, Elements& GameProgress, Appearance Page, Control &SettingsData, bool &previous)
 {
 	if (!previous)
 	{
@@ -1054,7 +1380,7 @@ void Play(int& mode, Proportions window, Zones Game, Elements& GameProgress, App
 					}
 					else
 					{
-						PauseMenu(mode, Page, window);
+						PauseMenu(mode, Page, window, SettingsData);
 						if (mode == 1 || mode == 0)
 							quit = true;
 					}
@@ -1063,7 +1389,10 @@ void Play(int& mode, Proportions window, Zones Game, Elements& GameProgress, App
 			case SDL_MOUSEBUTTONDOWN:
 				if (ButtonClick(Game.PauseButton, event.button.x, event.button.y) && event.button.button == SDL_BUTTON_LEFT)
 				{
-					PauseMenu(mode, Page, window);
+					if (SettingsData.Sounds != 0)
+						PlayActSound(ClickSound, SettingsData.Volume);
+
+					PauseMenu(mode, Page, window, SettingsData);
 					if (mode == 1 || mode == 0)
 						quit = true;
 				}
@@ -1091,6 +1420,9 @@ void Play(int& mode, Proportions window, Zones Game, Elements& GameProgress, App
 					
 					GameProgress.ThrowMax--;
 					GameProgress.LeadThrows++;
+
+					if (SettingsData.Sounds != 0)
+						PlayActSound(ClickSound, SettingsData.Volume);
 				}
 				//second throw butoon
 				if (ButtonClick(Game.ThrowButton2, event.button.x, event.button.y) && event.button.button == SDL_BUTTON_LEFT && GameProgress.Queue == 2 && animation == false && end == false)
@@ -1116,16 +1448,25 @@ void Play(int& mode, Proportions window, Zones Game, Elements& GameProgress, App
 					
 					GameProgress.ThrowMax--;
 					GameProgress.LeadThrows++;
+
+					if (SettingsData.Sounds != 0)
+						PlayActSound(ClickSound, SettingsData.Volume);
 				}
 				//first skip button
 				if (ButtonClick(Game.SkipButton1, event.button.x, event.button.y) && event.button.button == SDL_BUTTON_LEFT && GameProgress.Queue == 1 && animation == false && GameProgress.LeadThrows != 0 && end == false)
 				{
 					change = true;
+
+					if (SettingsData.Sounds != 0)
+						PlayActSound(ClickSound, SettingsData.Volume);
 				}
 				//second skip button
 				if (ButtonClick(Game.SkipButton2, event.button.x, event.button.y) && event.button.button == SDL_BUTTON_LEFT && GameProgress.Queue == 2 && animation == false && GameProgress.LeadThrows != 0 && end == false)
 				{
 					change = true;
+
+					if (SettingsData.Sounds != 0)
+						PlayActSound(ClickSound, SettingsData.Volume);
 				}
 				break;
 			}
@@ -1396,6 +1737,7 @@ void Play(int& mode, Proportions window, Zones Game, Elements& GameProgress, App
 				else
 				{
 					GenerateRandValues(GameProgress.DiceValues, GameProgress.Queue);
+					PlayActSound(MixingSound, SettingsData.Volume);
 					down = true;
 				}
 			}
@@ -1767,140 +2109,31 @@ void PrintSettingsFile(Control& SettingsData)
 	SFile.close();
 }
 
-//void ChangeText(char* text, const char* newtext)
-//{
-//	*text = '\0';
-//	strcpy_s(text, newtext);
-//}
+void PlayMusic(const char* name, int volume)
+{
+	fon = Mix_LoadMUS(name);
+	if (fon == NULL)
+	{
+		cout << "Couldn't load fon! Error: " << Mix_GetError();
+		system("pause");
+		DeInit(1);
+	}
 
-//int Input_Data(SDL_Window* window, SDL_Renderer* renderer, SDL_Rect& inputRect)
-//{
-//	SDL_Event event;
-//	int quit = 0;
-//
-//	char inputText[5] = "|";
-//	int inputIndex = 0;
-//
-//	TTF_Font* font = TTF_OpenFont("Button_2.ttf", 20);
-//	int maxIndex = 0, end = 3;
-//
-//	while (!quit) {
-//		while (SDL_PollEvent(&event)) {
-//			switch (event.type) {
-//			case SDL_QUIT:
-//				quit = 1;
-//				Fl = 1;
-//				break;
-//			case SDL_MOUSEBUTTONDOWN:
-//			{
-//				if (event.button.button == SDL_BUTTON_LEFT)
-//				{
-//					if (((event.button.x > inputRect.x + inputRect.w) or (event.button.x < inputRect.x)) or ((event.button.y > inputRect.y + inputRect.h) or (event.button.y < inputRect.y)))
-//					{
-//						quit = 1;
-//						break;
-//					}
-//				}
-//			}
-//			case SDL_KEYDOWN:
-//				switch (event.key.keysym.sym)
-//				{
-//				case SDLK_ESCAPE:
-//					quit = 1;
-//					TTF_CloseFont(font);
-//					return -1;
-//				case SDLK_RETURN:
-//					quit = 1;
-//					break;
-//				case SDLK_BACKSPACE:
-//					if (inputIndex > 0)
-//					{
-//						if (inputText[inputIndex + 1] != '\0')
-//						{
-//							for (int i = inputIndex - 1; i < end; i++)
-//							{
-//								inputText[i] = inputText[i + 1];
-//							}
-//							inputText[end] = '\0';
-//							inputIndex--;
-//							maxIndex--;
-//						}
-//						else
-//						{
-//							inputText[inputIndex] = '\0';
-//							inputText[inputIndex - 1] = '|';
-//							inputIndex--;
-//							maxIndex--;
-//						}
-//					}
-//					break;
-//				case SDLK_LEFT:
-//					if (inputIndex > 0)
-//					{
-//						inputText[inputIndex] = inputText[inputIndex - 1];
-//						inputText[inputIndex - 1] = '|';
-//						inputIndex--;
-//						if (inputIndex <= 0) { inputIndex = 0; }
-//					}
-//					break;
-//				case SDLK_RIGHT:
-//					if (inputIndex < maxIndex)
-//					{
-//						inputText[inputIndex] = inputText[inputIndex + 1];
-//						inputText[inputIndex + 1] = '|';
-//						inputIndex++;
-//						if (inputIndex >= maxIndex) { inputIndex = maxIndex; }
-//					}
-//					break;
-//				default:
-//					if ((event.key.keysym.sym >= 48 && event.key.keysym.sym <= 57 && inputIndex < end && inputIndex < 3) and (strlen(inputText) <= 3))
-//					{
-//						if (inputText[inputIndex + 1] != '\0')
-//						{
-//							for (int i = end; i > inputIndex; i--)
-//							{
-//								inputText[i] = inputText[i - 1];
-//							}
-//							inputText[inputIndex] = (char)event.key.keysym.sym;
-//							inputIndex++;
-//							maxIndex++;
-//							inputText[inputIndex] = '|';
-//						}
-//						else
-//						{
-//							inputText[inputIndex] = (char)event.key.keysym.sym;
-//							inputIndex++;
-//							maxIndex++;
-//							inputText[inputIndex] = '|';
-//						}
-//					}
-//					break;
-//				}
-//				break;
-//			}
-//		}
-//
-//		int red_text = 214;
-//
-//		SDL_Rect textRect = { inputRect.x + 2, inputRect.y + 8, 0, 0 };
-//		SDL_Color textColor = { 0, 0, 0 };
-//		SDL_Color fore_color = { 0, 0, 0 };
-//		SDL_Color back_color = { 255, 255, 255 };
-//		SDL_Surface* textSurface = TTF_RenderText_Shaded(font, inputText, fore_color, back_color);
-//		SDL_Texture* textTexture = (renderer, inputText, font, red_text);
-//		textRect.w = textSurface->w;
-//		textRect.h = textSurface->h;
-//		SDL_SetRenderDrawColor(renderer, 64, 64, 64, 0);
-//		SDL_RenderFillRect(renderer, &inputRect);
-//		draw_Place(renderer, textTexture, textRect);
-//
-//		SDL_FreeSurface(textSurface);
-//		SDL_DestroyTexture(textTexture);
-//
-//		SDL_RenderPresent(renderer);
-//	}
-//
-//	TTF_CloseFont(font);
-//
-//	return atoi(inputText);
-//}
+	Mix_VolumeMusic(volume * 12);
+	Mix_PlayMusic(fon, -1);
+}
+
+void PlayActSound(const char* name, int volume)
+{
+	sound = Mix_LoadWAV(name);
+	if (sound == NULL)
+	{
+		cout << "Couldn't load sound! Error: " << Mix_GetError();
+		system("pause");
+		DeInit(1);
+	}
+
+	Mix_VolumeChunk(sound, volume * 12);
+	Mix_PlayChannel(-1, sound, 0);
+}
+

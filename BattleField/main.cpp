@@ -41,6 +41,9 @@ int main(int argc, char** argv)
 	
 	PageLayout(Page, window, Game);
 
+	if (SettingsData.Music != 0)
+		PlayMusic(BackgroundMusic, SettingsData.Volume);
+
 	int mode = 1;
 	bool previous;
 	if (GameProgress.GameStatus != 0)
@@ -58,25 +61,25 @@ int main(int argc, char** argv)
 		switch (mode)
 		{
 		case 1:
-			MainMenu(mode, Page, window, previous);
+			MainMenu(mode, Page, window, SettingsData, previous);
 			break;
 		case 2:
-			ExitMenu(mode, Page, window);
+			ExitMenu(mode, Page, window, SettingsData);
 			break;
 		case 3:
-			Rules(mode, Page, window);
+			Rules(mode, Page, window, SettingsData);
 			break;
 		case 4:
-			Settings(mode, Page, window);
+			Settings(mode, Page, window, SettingsData);
 			break;
 		case 5:
-			CheckPoint(mode, Page, window, previous);
+			CheckPoint(mode, Page, window, SettingsData, previous);
 			break;
 		case 6:
-			Identification(mode, Page, window, GameProgress.Gambler1, GameProgress.Gambler2);
+			Identification(mode, Page, window, SettingsData, GameProgress);
 			break;
 		case 7:
-			Play(mode, window, Game, GameProgress, Page, previous);
+			Play(mode, window, Game, GameProgress, Page, SettingsData, previous);
 			break;
 		}
 	}
