@@ -314,7 +314,7 @@ void Rules(int& mode, Appearance Page, Proportions window, Control& SettingsData
 	
 	char theme[] = u8"Правила игры";
 	SDL_Rect heading_rect;
-	SDL_Rect rules_rect = { window.width / 2 - (window.height - Page.UnderlineIndent - ut - cv * 2) / 9 * 16 / 2, Page.UnderlineIndent + ut + cv, (window.height - Page.UnderlineIndent - ut - cv * 2) / 9 * 16, window.height - Page.UnderlineIndent - ut - cv * 2 };
+	SDL_Rect rules_rect = { cv * 2, Page.UnderlineIndent + ut + cv, (window.height - Page.UnderlineIndent - ut - cv * 2) / 9 * 16, window.height - Page.UnderlineIndent - ut - cv * 2 };
 	
 	SDL_Texture* stepback = LoadTextureFromFile("images\\stepback.png");
 	SDL_Texture* heading = GenerateTextureFromText(theme, Franklin, &heading_rect, { 255, 255, 255, 0 });
