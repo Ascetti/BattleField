@@ -14,30 +14,7 @@ int main(int argc, char** argv)
 	ReadGameProgressDataFile(GameProgress);
 	ReadSettingsFile(SettingsData);
 
-	if (GameProgress.GameStatus == 0)
-	{
-		strcpy_s(GameProgress.Gambler1, "Player 1");
-		strcpy_s(GameProgress.Gambler2, "Player 2");
-	}
-
 	Init(window);
-
-	/*cout << GameProgress.GameStatus << endl;
-	cout << GameProgress.Round << endl;
-	cout << GameProgress.OutcomeText << endl;
-	cout << GameProgress.FinalText << endl;
-	cout << GameProgress.p1 << endl;
-	cout << GameProgress.p2 << endl;
-	cout << GameProgress.Queue << endl;
-	cout << GameProgress.Gambler1 << endl;
-	cout << GameProgress.Gambler2 << endl;
-	cout << GameProgress.Combo1 << endl;
-	cout << GameProgress.Combo2 << endl;
-	cout << GameProgress.ThrowMax << endl;
-	cout << GameProgress.LeadSwap << endl;
-	cout << GameProgress.LeadThrows << endl;
-	for (int i = 0; i < dq; i++)
-		cout << GameProgress.DiceValues[i] << " ";*/
 	
 	PageLayout(Page, window, Game);
 

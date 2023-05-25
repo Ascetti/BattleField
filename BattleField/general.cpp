@@ -132,8 +132,6 @@ void MainMenu(int& mode, Appearance Page, Proportions window, Control& SettingsD
 			case SDL_MOUSEBUTTONDOWN:
 				if (ButtonClick(Page.FirstTypeButton, event.button.x, event.button.y) && event.button.button == SDL_BUTTON_LEFT)
 				{
-					/*Page.FirstTypeButton = { Page.FirstTypeButton.x + cv / 2, Page.FirstTypeButton.y + cv / 2, Page.FirstTypeButton.w - cv, Page.FirstTypeButton.h - cv };
-					tap = 1;*/
 					quit = true;
 					if (previous)
 					{
@@ -149,11 +147,6 @@ void MainMenu(int& mode, Appearance Page, Proportions window, Control& SettingsD
 				}
 				if (ButtonClick(Page.SecondTypeButton, event.button.x, event.button.y))
 				{
-					/*Page.SecondTypeButton = { Page.SecondTypeButton.x + cv / 2, Page.SecondTypeButton.y + cv / 2, Page.SecondTypeButton.w - cv, Page.SecondTypeButton.h - cv };
-					tap = 2;*/
-					/*quit = true;
-					mode = 3;*/
-
 					if (SettingsData.Sounds != 0)
 						PlayActSound(ClickSound, SettingsData.Volume);
 
@@ -162,15 +155,10 @@ void MainMenu(int& mode, Appearance Page, Proportions window, Control& SettingsD
 					{
 						quit = true;
 						mode = 0;						
-					}					
+					}			
 				}					
 				if (ButtonClick(Page.ThirdTypeButton, event.button.x, event.button.y))
 				{
-					/*Page.ThirdTypeButton = { Page.ThirdTypeButton.x + cv / 2, Page.ThirdTypeButton.y + cv / 2, Page.ThirdTypeButton.w - cv, Page.ThirdTypeButton.h - cv };
-					tap = 3;*/
-					/*quit = true;
-					mode = 4;*/
-
 					if (SettingsData.Sounds != 0)
 						PlayActSound(ClickSound, SettingsData.Volume);
 
@@ -183,8 +171,6 @@ void MainMenu(int& mode, Appearance Page, Proportions window, Control& SettingsD
 				}
 				if (ButtonClick(Page.FourthTypeButton, event.button.x, event.button.y))
 				{
-					/*Page.FourthTypeButton = { Page.FourthTypeButton.x + cv / 2, Page.FourthTypeButton.y + cv / 2, Page.FourthTypeButton.w - cv, Page.FourthTypeButton.h - cv };
-					tap = 4;*/
 					quit = true;
 					mode = 2;
 
@@ -197,9 +183,6 @@ void MainMenu(int& mode, Appearance Page, Proportions window, Control& SettingsD
 
 		SDL_SetRenderDrawColor(ren, 0, 0, 0, 0);
 		SDL_RenderClear(ren);
-		
-		/*SDL_SetRenderDrawColor(ren, 255, 255, 255, 0);
-		SDL_RenderDrawRect(ren, &Page.StepBack);*/
 
 		SDL_SetRenderDrawColor(ren, r, g, b, 0);
 		for (int i = 0; i < ut; i++)
@@ -214,15 +197,6 @@ void MainMenu(int& mode, Appearance Page, Proportions window, Control& SettingsD
 		SDL_RenderCopy(ren, heading, NULL, &heading_rect);
 
 		SDL_RenderPresent(ren);
-
-		/*if (tap == 1)
-			Page.FirstTypeButton = { Page.FirstTypeButton.x - cv / 2, Page.FirstTypeButton.y - cv / 2, Page.FirstTypeButton.w + cv, Page.FirstTypeButton.h + cv };
-		if (tap == 2)
-			Page.SecondTypeButton = { Page.SecondTypeButton.x - cv / 2, Page.SecondTypeButton.y - cv / 2, Page.SecondTypeButton.w + cv, Page.SecondTypeButton.h + cv };
-		if (tap == 3)
-			Page.ThirdTypeButton = { Page.ThirdTypeButton.x - cv / 2, Page.ThirdTypeButton.y - cv / 2, Page.ThirdTypeButton.w + cv, Page.ThirdTypeButton.h + cv };
-		if (tap == 4)
-			Page.FourthTypeButton = { Page.FourthTypeButton.x - cv / 2, Page.FourthTypeButton.y - cv / 2, Page.FourthTypeButton.w + cv, Page.FourthTypeButton.h + cv };*/
 	}
 
 	
@@ -822,7 +796,7 @@ void Identification(int& mode, Appearance Page, Proportions window, Control& Set
 	SDL_Event event;
 	bool quit = false;
 
-	int MaxInput = 14;
+	int MaxInput = 11;
 	int InputIndex1 = 1;
 	int InputIndex2 = 1;
 	char text[2] = u8"|";
@@ -917,25 +891,6 @@ void Identification(int& mode, Appearance Page, Proportions window, Control& Set
 							gambler1 = GenerateTextureFromText(InputText1, SanFrancisco, &gambler1_rect, { 255, 255, 255, 255});
 						}
 					}
-					if ((event.key.keysym.sym == ' ') || (event.key.keysym.sym == SDLK_UNDERSCORE) || ((event.key.keysym.sym >= '0') && (event.key.keysym.sym <= '9')) || ((event.key.keysym.sym >= 'a') && (event.key.keysym.sym <= 'z')) || ((event.key.keysym.sym >= 'A') && (event.key.keysym.sym <= 'Z')))
-					{
-						if (InputIndex1 < MaxInput)
-						{
-							InputText1[InputIndex1] = (char)event.key.keysym.sym;
-							InputIndex1 += 1;
-							InputText1[InputIndex1] = '\0';
-							if (gambler1 != NULL)
-							{
-								SDL_DestroyTexture(gambler1);
-							}
-							gambler1 = GenerateTextureFromText(InputText1, SanFrancisco, &gambler1_rect, { 255, 255, 255, 255 });
-						}
-					}
-					if (event.key.keysym.sym == SDLK_RETURN)
-					{
-						StartInput1 = false;
-						EndInput1 = true;
-					}
 				}
 				if (StartInput2)
 				{
@@ -952,12 +907,35 @@ void Identification(int& mode, Appearance Page, Proportions window, Control& Set
 							gambler2 = GenerateTextureFromText(InputText2, SanFrancisco, &gambler2_rect, { 255, 255, 255, 255 });
 						}
 					}
-					if ((event.key.keysym.sym == ' ') || ((event.key.keysym.sym >= '0') && (event.key.keysym.sym <= '9')) || ((event.key.keysym.sym >= 'a') && (event.key.keysym.sym <= 'z')))
+				}
+				break;
+			case SDL_TEXTINPUT:
+				if (StartInput1)
+				{
+					if (InputIndex1 < MaxInput)
 					{
-
-						if (InputIndex2 < MaxInput)
+						SDL_TextInputEvent textinput;
+						textinput.text[0] = event.text.text[0];
+						if (textinput.text[0] == '_' || (textinput.text[0] >= 'A' && textinput.text[0] <= 'Z') || (textinput.text[0] >= 'a' && textinput.text[0] <= 'z') || textinput.text[0] == ' ' || ((textinput.text[0] >= '0' && textinput.text[0] <= '9')))
+						InputText1[InputIndex1] = textinput.text[0];
+						InputIndex1 += 1;
+						InputText1[InputIndex1] = '\0';
+						if (gambler1 != NULL)
 						{
-							InputText2[InputIndex2] = (char)event.key.keysym.sym;
+							SDL_DestroyTexture(gambler1);
+						}
+						gambler1 = GenerateTextureFromText(InputText1, SanFrancisco, &gambler1_rect, { 255, 255, 255, 255 });
+					}
+				}
+				if (StartInput2)
+				{
+					if (InputIndex2 < MaxInput)
+					{
+						SDL_TextInputEvent textinput;
+						textinput.text[0] = event.text.text[0];
+						if (textinput.text[0] == '_' || (textinput.text[0] >= 'A' && textinput.text[0] <= 'Z') || (textinput.text[0] >= 'a' && textinput.text[0] <= 'z') || textinput.text[0] == ' ' || ((textinput.text[0] >= '0' && textinput.text[0] <= '9')))
+						{
+							InputText2[InputIndex2] = textinput.text[0];
 							InputIndex2 += 1;
 							InputText2[InputIndex2] = '\0';
 							if (gambler2 != NULL)
@@ -966,15 +944,16 @@ void Identification(int& mode, Appearance Page, Proportions window, Control& Set
 							}
 							gambler2 = GenerateTextureFromText(InputText2, SanFrancisco, &gambler2_rect, { 255, 255, 255, 255 });
 						}
-					}
-					if (event.key.keysym.sym == SDLK_RETURN)
-					{
-						StartInput2 = false;
-						EndInput2 = true;
+						if (event.key.keysym.sym == SDLK_RETURN)
+						{
+							StartInput2 = false;
+							EndInput2 = true;
+						}
 					}
 				}
 				break;
 			}
+			
 
 		}
 
@@ -1051,7 +1030,7 @@ void Identification(int& mode, Appearance Page, Proportions window, Control& Set
 	}
 	else
 	{
-		strcpy_s(GameProgress.Gambler1, "Player 1");
+		strcpy_s(GameProgress.Gambler1, " Player 1");
 	}
 
 	if (strcmp(InputText2, " ") && EndInput2)
@@ -1060,7 +1039,7 @@ void Identification(int& mode, Appearance Page, Proportions window, Control& Set
 	}
 	else
 	{
-		strcpy_s(GameProgress.Gambler2, "Player 2");
+		strcpy_s(GameProgress.Gambler2, " Player 2");
 	}
 }
 
@@ -1368,9 +1347,9 @@ void Play(int& mode, Proportions window, Zones Game, Elements& GameProgress, App
 	SkipButton2_rect.x = Game.SkipButton2.x + Game.SkipButton2.w / 2 - SkipButton1_rect.w / 2;
 	SkipButton2_rect.y = Game.SkipButton2.y + Game.SkipButton2.h / 2 - SkipButton1_rect.h / 2;
 
-	gamblername1_rect.x = Game.Name1.x + cv;
+	gamblername1_rect.x = Game.Name1.x;
 	gamblername1_rect.y = Game.Name1.y + ut;
-	gamblername2_rect.x = Game.Name2.x + cv;
+	gamblername2_rect.x = Game.Name2.x;
 	gamblername2_rect.y = Game.Name2.y + ut;
 
 	lead_rect.y = Game.Name1.y + Game.Name1.h / 2 - lead_rect.h / 2 - ut;
@@ -2015,9 +1994,103 @@ void Play(int& mode, Proportions window, Zones Game, Elements& GameProgress, App
 		//==============================================================================
 		//отрисовка
 
-		#pragma region StaticDrawing
+		//статичные объекты
 		SDL_SetRenderDrawColor(ren, 0, 0, 0, 0);
 		SDL_RenderClear(ren);
+
+		SDL_RenderCopy(ren, ThrowButton, NULL, &ThrowButton1_rect);
+		SDL_RenderCopy(ren, SkipButton, NULL, &SkipButton1_rect);
+		SDL_RenderCopy(ren, ThrowButton, NULL, &ThrowButton2_rect);
+		SDL_RenderCopy(ren, SkipButton, NULL, &SkipButton2_rect);
+		SDL_RenderCopy(ren, tips1, NULL, &tips1_rect);
+		SDL_RenderCopy(ren, tips2, NULL, &tips2_rect);
+		SDL_RenderCopy(ren, tips3, NULL, &tips3_rect);
+		SDL_RenderCopy(ren, tips4, NULL, &tips4_rect);
+		SDL_RenderCopy(ren, tips5, NULL, &tips5_rect);
+		SDL_RenderCopy(ren, tips6, NULL, &tips6_rect);
+		SDL_RenderCopy(ren, tips7, NULL, &tips7_rect);
+		SDL_RenderCopy(ren, table, NULL, &Game.PlayZone1);
+		SDL_RenderCopy(ren, table, NULL, &Game.PlayZone2);
+		SDL_RenderCopy(ren, PauseButton, NULL, &Game.PauseButton);
+
+		SDL_RenderCopy(ren, gambler1, NULL, &gamblername1_rect);
+		SDL_RenderCopy(ren, gambler2, NULL, &gamblername2_rect);
+		SDL_RenderCopy(ren, lead, NULL, &lead_rect);
+
+
+		//динамичные объекты
+		SDL_RenderCopy(ren, score1, NULL, &score1_rect);
+		SDL_RenderCopy(ren, score2, NULL, &score2_rect);
+		SDL_RenderCopy(ren, phase, NULL, &phase_rect);
+		SDL_RenderCopy(ren, outcome, NULL, &outcome_rect);
+		SDL_RenderCopy(ren, final, NULL, &final_rect);
+
+		//кости
+		if (GameProgress.DiceValues[0] != 0)
+		{
+			for (int i = 0; i <= ut; i++)
+			{
+				switch (GameProgress.DiceValues[i])
+				{
+				case 1:
+					dice1 = LoadTextureFromFile("images\\dice1.png");
+					break;
+				case 2:
+					dice1 = LoadTextureFromFile("images\\dice2.png");
+					break;
+				case 3:
+					dice1 = LoadTextureFromFile("images\\dice3.png");
+					break;
+				case 4:
+					dice1 = LoadTextureFromFile("images\\dice4.png");
+					break;
+				case 5:
+					dice1 = LoadTextureFromFile("images\\dice5.png");
+					break;
+				case 6:
+					dice1 = LoadTextureFromFile("images\\dice6.png");
+					break;
+				}
+				SDL_RenderCopy(ren, dice1, NULL, &dice1_rect);
+				dice1_rect.y += dice1_rect.h;
+
+				switch (GameProgress.DiceValues[i + 5])
+				{
+				case 1:
+					dice2 = LoadTextureFromFile("images\\dice1.png");
+					break;
+				case 2:
+					dice2 = LoadTextureFromFile("images\\dice2.png");
+					break;
+				case 3:
+					dice2 = LoadTextureFromFile("images\\dice3.png");
+					break;
+				case 4:
+					dice2 = LoadTextureFromFile("images\\dice4.png");
+					break;
+				case 5:
+					dice2 = LoadTextureFromFile("images\\dice5.png");
+					break;
+				case 6:
+					dice2 = LoadTextureFromFile("images\\dice6.png");
+					break;
+				}
+				SDL_RenderCopy(ren, dice2, NULL, &dice2_rect);
+				dice2_rect.y += dice2_rect.h;
+
+				SDL_DestroyTexture(dice1);
+				SDL_DestroyTexture(dice2);
+			}
+
+
+		}
+		SDL_RenderCopy(ren, combo1, NULL, &combo1_rect);
+		SDL_RenderCopy(ren, combo2, NULL, &combo2_rect);
+
+		if (animation == true)
+			SDL_RenderCopy(ren, glass, &glass_recttmp, &gameglasscopy);
+
+
 
 		//белые линии
 		SDL_SetRenderDrawColor(ren, 255, 255, 255, 0);
@@ -2087,103 +2160,8 @@ void Play(int& mode, Proportions window, Zones Game, Elements& GameProgress, App
 			SDL_RenderDrawRect(ren, &skip2);
 		}
 
-		//статичные объекты
-		SDL_RenderCopy(ren, ThrowButton, NULL, &ThrowButton1_rect);
-		SDL_RenderCopy(ren, SkipButton, NULL, &SkipButton1_rect);
-		SDL_RenderCopy(ren, ThrowButton, NULL, &ThrowButton2_rect);
-		SDL_RenderCopy(ren, SkipButton, NULL, &SkipButton2_rect);
-		SDL_RenderCopy(ren, tips1, NULL, &tips1_rect);
-		SDL_RenderCopy(ren, tips2, NULL, &tips2_rect);
-		SDL_RenderCopy(ren, tips3, NULL, &tips3_rect);
-		SDL_RenderCopy(ren, tips4, NULL, &tips4_rect);
-		SDL_RenderCopy(ren, tips5, NULL, &tips5_rect);
-		SDL_RenderCopy(ren, tips6, NULL, &tips6_rect);
-		SDL_RenderCopy(ren, tips7, NULL, &tips7_rect);
-		SDL_RenderCopy(ren, table, NULL, &Game.PlayZone1);
-		SDL_RenderCopy(ren, table, NULL, &Game.PlayZone2);
-		SDL_RenderCopy(ren, PauseButton, NULL, &Game.PauseButton);
-
-		SDL_RenderCopy(ren, gambler1, NULL, &gamblername1_rect);
-		SDL_RenderCopy(ren, gambler2, NULL, &gamblername2_rect);
-		SDL_RenderCopy(ren, lead, NULL, &lead_rect);
-#pragma endregion
-
-
-		//динамичные объекты
-		SDL_RenderCopy(ren, score1, NULL, &score1_rect);
-		SDL_RenderCopy(ren, score2, NULL, &score2_rect);
-		SDL_RenderCopy(ren, phase, NULL, &phase_rect);
-		SDL_RenderCopy(ren, outcome, NULL, &outcome_rect);
-		SDL_RenderCopy(ren, final, NULL, &final_rect);
-
-		//кости
-		if (GameProgress.DiceValues[0] != 0)
-		{
-			for (int i = 0; i <= ut; i++)
-			{
-				switch (GameProgress.DiceValues[i])
-				{
-				case 1:
-					dice1 = LoadTextureFromFile("images\\dice1.png");
-					break;
-				case 2:
-					dice1 = LoadTextureFromFile("images\\dice2.png");
-					break;
-				case 3:
-					dice1 = LoadTextureFromFile("images\\dice3.png");
-					break;
-				case 4:
-					dice1 = LoadTextureFromFile("images\\dice4.png");
-					break;
-				case 5:
-					dice1 = LoadTextureFromFile("images\\dice5.png");
-					break;
-				case 6:
-					dice1 = LoadTextureFromFile("images\\dice6.png");
-					break;
-				}
-				SDL_RenderCopy(ren, dice1, NULL, &dice1_rect);
-				dice1_rect.y += dice1_rect.h;
-
-				switch (GameProgress.DiceValues[i + 5])
-				{
-				case 1:
-					dice2 = LoadTextureFromFile("images\\dice1.png");
-					break;
-				case 2:
-					dice2 = LoadTextureFromFile("images\\dice2.png");
-					break;
-				case 3:
-					dice2 = LoadTextureFromFile("images\\dice3.png");
-					break;
-				case 4:
-					dice2 = LoadTextureFromFile("images\\dice4.png");
-					break;
-				case 5: 
-					dice2 = LoadTextureFromFile("images\\dice5.png");
-					break;
-				case 6:
-					dice2 = LoadTextureFromFile("images\\dice6.png");
-					break;
-				}
-				SDL_RenderCopy(ren, dice2, NULL, &dice2_rect);
-				dice2_rect.y += dice2_rect.h;
-
-				SDL_DestroyTexture(dice1);
-				SDL_DestroyTexture(dice2);
-			}
-
-			
-		}
-		SDL_RenderCopy(ren, combo1, NULL, &combo1_rect);
-		SDL_RenderCopy(ren, combo2, NULL, &combo2_rect);
-
-		if (animation == true)
-			SDL_RenderCopy(ren, glass, &glass_recttmp, &gameglasscopy);
+	
 		
-		
-		
-
 		SDL_RenderPresent(ren);
 		FPSControl();
 	}
