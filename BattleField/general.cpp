@@ -115,6 +115,9 @@ void MainMenu(int& mode, Appearance Page, Proportions window, Control& SettingsD
 	SDL_Texture* button_fourth = LoadTextureFromFile("images\\gameexit.png");
 	SDL_Texture* heading = GenerateTextureFromText(theme, Franklin, &heading_rect, { 255, 255, 255, 0});
 
+	heading_rect.x = window.width / 2 - heading_rect.w / 2;
+	heading_rect.y = Page.UnderlineIndent / 2 - heading_rect.h / 2;
+
 	SDL_Event event;
 	bool quit = false;
 	int tap = 0;
@@ -192,14 +195,10 @@ void MainMenu(int& mode, Appearance Page, Proportions window, Control& SettingsD
 		SDL_RenderCopy(ren, button_second, NULL, &Page.SecondTypeButton);
 		SDL_RenderCopy(ren, button_third, NULL, &Page.ThirdTypeButton);
 		SDL_RenderCopy(ren, button_fourth, NULL, &Page.FourthTypeButton);
-		heading_rect.x = window.width / 2 - heading_rect.w / 2;
-		heading_rect.y = Page.UnderlineIndent / 2 - heading_rect.h / 2;
 		SDL_RenderCopy(ren, heading, NULL, &heading_rect);
 
 		SDL_RenderPresent(ren);
 	}
-
-	
 
 	SDL_DestroyTexture(button_first);
 	SDL_DestroyTexture(button_second);
@@ -239,6 +238,10 @@ void ExitMenu(int& mode, Appearance Page, Proportions window, Control& SettingsD
 	SDL_Texture* heading = GenerateTextureFromText(theme, Franklin, &heading_rect, { 255, 255, 255, 0 });
 	SDL_Texture* announcement = GenerateTextureFromText(message, SanFrancisco, &message_rect, { 255, 255, 255, 0 });
 
+	heading_rect.x = window.width / 2 - heading_rect.w / 2;
+	heading_rect.y = Page.UnderlineIndent / 2 - heading_rect.h / 2;
+	message_rect.x = window.width / 2 - message_rect.w / 2;
+	message_rect.y = Page.FifthTypeButton.y / 2 + Page.UnderlineIndent + ut - message_rect.h / 2;
 
 	SDL_Event event;
 	bool quit = false;
@@ -274,6 +277,7 @@ void ExitMenu(int& mode, Appearance Page, Proportions window, Control& SettingsD
 			}
 
 		}
+
 		SDL_SetRenderDrawColor(ren, 0, 0, 0, 0);
 		SDL_RenderClear(ren);
 
@@ -281,10 +285,6 @@ void ExitMenu(int& mode, Appearance Page, Proportions window, Control& SettingsD
 		for (int i = 0; i < ut; i++)
 			SDL_RenderDrawLine(ren, 0, Page.UnderlineIndent + i, window.width, Page.UnderlineIndent + i);
 
-		heading_rect.x = window.width / 2 - heading_rect.w / 2;
-		heading_rect.y = Page.UnderlineIndent / 2 - heading_rect.h / 2;
-		message_rect.x = window.width / 2 - message_rect.w / 2;
-		message_rect.y = Page.FifthTypeButton.y / 2 + Page.UnderlineIndent + ut - message_rect.h / 2;
 		SDL_RenderCopy(ren, heading, NULL, &heading_rect);
 		SDL_RenderCopy(ren, announcement, NULL, &message_rect);
 		SDL_RenderCopy(ren, button_fifth, NULL, &Page.FifthTypeButton);
@@ -320,6 +320,9 @@ void Rules(int& mode, Appearance Page, Proportions window, Control& SettingsData
 	SDL_Texture* heading = GenerateTextureFromText(theme, Franklin, &heading_rect, { 255, 255, 255, 0 });
 	SDL_Texture* rules = LoadTextureFromFile("images\\rules.png");
 
+	heading_rect.x = window.width / 2 - heading_rect.w / 2;
+	heading_rect.y = Page.UnderlineIndent / 2 - heading_rect.h / 2;
+
 	SDL_Event event;
 	bool quit = false;
 
@@ -349,8 +352,9 @@ void Rules(int& mode, Appearance Page, Proportions window, Control& SettingsData
 				}
 				break;
 			}
-
 		}
+
+		
 		SDL_SetRenderDrawColor(ren, 0, 0, 0, 0);
 		SDL_RenderClear(ren);
 
@@ -358,8 +362,6 @@ void Rules(int& mode, Appearance Page, Proportions window, Control& SettingsData
 		for (int i = 0; i < ut; i++)
 			SDL_RenderDrawLine(ren, 0, Page.UnderlineIndent + i, window.width, Page.UnderlineIndent + i);
 
-		heading_rect.x = window.width / 2 - heading_rect.w / 2;
-		heading_rect.y = Page.UnderlineIndent / 2 - heading_rect.h / 2;
 		SDL_RenderCopy(ren, heading, NULL, &heading_rect);
 		SDL_RenderCopy(ren, stepback, NULL, &Page.StepBack);
 		SDL_RenderCopy(ren, rules, NULL, &rules_rect);
@@ -656,6 +658,8 @@ void PauseMenu(int& mode, Appearance Page, Proportions window, Control& Settings
 	SDL_Texture* button_fourth = LoadTextureFromFile("images\\menuexit.png");
 	SDL_Texture* heading = GenerateTextureFromText(theme, Franklin, &heading_rect, { 255, 255, 255, 0 });
 
+	heading_rect.x = window.width / 2 - heading_rect.w / 2;
+	heading_rect.y = Page.UnderlineIndent / 2 - heading_rect.h / 2;
 
 	SDL_Event event;
 	bool quit = false;
@@ -713,6 +717,8 @@ void PauseMenu(int& mode, Appearance Page, Proportions window, Control& Settings
 			}
 
 		}
+
+
 		SDL_SetRenderDrawColor(ren, 0, 0, 0, 0);
 		SDL_RenderClear(ren);
 
@@ -724,8 +730,6 @@ void PauseMenu(int& mode, Appearance Page, Proportions window, Control& Settings
 		SDL_RenderCopy(ren, button_second, NULL, &Page.SecondTypeButton);
 		SDL_RenderCopy(ren, button_third, NULL, &Page.ThirdTypeButton);
 		SDL_RenderCopy(ren, button_fourth, NULL, &Page.FourthTypeButton);
-		heading_rect.x = window.width / 2 - heading_rect.w / 2;
-		heading_rect.y = Page.UnderlineIndent / 2 - heading_rect.h / 2;
 		SDL_RenderCopy(ren, heading, NULL, &heading_rect);
 
 		SDL_RenderPresent(ren);
@@ -793,8 +797,6 @@ void Identification(int& mode, Appearance Page, Proportions window, Control& Set
 	player2_rect.x = Page.UnderlineIndent / 2;
 	player2_rect.y = Page.UnderlineIndent * 4;
 
-	SDL_Event event;
-	bool quit = false;
 
 	int MaxInput = 11;
 	int InputIndex1 = 1;
@@ -820,6 +822,9 @@ void Identification(int& mode, Appearance Page, Proportions window, Control& Set
 	gambler1_rect = { window.width / 5 + cv, player1_rect.y + player1_rect.h / 2 - TextFontSize / 2, 0, 0 };
 	gambler2_rect = { window.width / 5 + cv, player2_rect.y + player2_rect.h / 2 - TextFontSize / 2, 0, 0 };
 	
+	SDL_Event event;
+	bool quit = false;
+
 	while (!quit)
 	{
 		while (SDL_PollEvent(&event))
@@ -1072,6 +1077,10 @@ void CheckPoint(int& mode, Appearance Page, Proportions window, Control& Setting
 	SDL_Texture* heading = GenerateTextureFromText(theme, Franklin, &heading_rect, { 255, 255, 255, 0 });
 	SDL_Texture* announcement = GenerateTextureFromText(message, SanFrancisco, &message_rect, { 255, 255, 255, 0 });
 
+	heading_rect.x = window.width / 2 - heading_rect.w / 2;
+	heading_rect.y = Page.UnderlineIndent / 2 - heading_rect.h / 2;
+	message_rect.x = window.width / 2 - message_rect.w / 2;
+	message_rect.y = Page.FifthTypeButton.y / 2 + Page.UnderlineIndent + ut - message_rect.h / 2;
 
 	SDL_Event event;
 	bool quit = false;
@@ -1109,6 +1118,8 @@ void CheckPoint(int& mode, Appearance Page, Proportions window, Control& Setting
 			}
 
 		}
+
+
 		SDL_SetRenderDrawColor(ren, 0, 0, 0, 0);
 		SDL_RenderClear(ren);
 
@@ -1116,10 +1127,6 @@ void CheckPoint(int& mode, Appearance Page, Proportions window, Control& Setting
 		for (int i = 0; i < ut; i++)
 			SDL_RenderDrawLine(ren, 0, Page.UnderlineIndent + i, window.width, Page.UnderlineIndent + i);
 
-		heading_rect.x = window.width / 2 - heading_rect.w / 2;
-		heading_rect.y = Page.UnderlineIndent / 2 - heading_rect.h / 2;
-		message_rect.x = window.width / 2 - message_rect.w / 2;
-		message_rect.y = Page.FifthTypeButton.y / 2 + Page.UnderlineIndent + ut - message_rect.h / 2;
 		SDL_RenderCopy(ren, heading, NULL, &heading_rect);
 		SDL_RenderCopy(ren, announcement, NULL, &message_rect);
 		SDL_RenderCopy(ren, button_fifth, NULL, &Page.FifthTypeButton);
@@ -1166,6 +1173,10 @@ void Ending(int& mode, Appearance Page, Proportions window, Control& SettingsDat
 	SDL_Texture* heading = GenerateTextureFromText(theme, Franklin, &heading_rect, { 255, 255, 255, 0 });
 	SDL_Texture* announcement = GenerateTextureFromText(message, SanFrancisco, &message_rect, { 255, 255, 255, 0 });
 
+	heading_rect.x = window.width / 2 - heading_rect.w / 2;
+	heading_rect.y = Page.UnderlineIndent / 2 - heading_rect.h / 2;
+	message_rect.x = window.width / 2 - message_rect.w / 2;
+	message_rect.y = Page.FifthTypeButton.y / 2 + Page.UnderlineIndent + ut - message_rect.h / 2;
 
 	SDL_Event event;
 	bool quit = false;
@@ -1209,10 +1220,6 @@ void Ending(int& mode, Appearance Page, Proportions window, Control& SettingsDat
 		for (int i = 0; i < ut; i++)
 			SDL_RenderDrawLine(ren, 0, Page.UnderlineIndent + i, window.width, Page.UnderlineIndent + i);
 
-		heading_rect.x = window.width / 2 - heading_rect.w / 2;
-		heading_rect.y = Page.UnderlineIndent / 2 - heading_rect.h / 2;
-		message_rect.x = window.width / 2 - message_rect.w / 2;
-		message_rect.y = Page.FifthTypeButton.y / 2 + Page.UnderlineIndent + ut - message_rect.h / 2;
 		SDL_RenderCopy(ren, heading, NULL, &heading_rect);
 		SDL_RenderCopy(ren, announcement, NULL, &message_rect);
 		SDL_RenderCopy(ren, button_fifth, NULL, &Page.FifthTypeButton);
