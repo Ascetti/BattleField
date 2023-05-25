@@ -4,8 +4,8 @@
  
 0 0
 1
- fnlkItr_0c
- FKoyi_34 f
+ Player 1
+ Player 2
  
  
 1
