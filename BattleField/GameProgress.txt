@@ -4,8 +4,8 @@
  
 0 0
 1
- knasgakf
- afv afsl valv
+Player 1
+Player 2
  
  
 1

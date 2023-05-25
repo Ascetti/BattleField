@@ -303,9 +303,6 @@ void ExitMenu(int& mode, Appearance Page, Proportions window, Control& SettingsD
 		SDL_SetRenderDrawColor(ren, 0, 0, 0, 0);
 		SDL_RenderClear(ren);
 
-		/*SDL_SetRenderDrawColor(ren, 255, 255, 255, 0);
-		SDL_RenderDrawRect(ren, &Page.StepBack);*/
-
 		SDL_SetRenderDrawColor(ren, r, g, b, 0);
 		for (int i = 0; i < ut; i++)
 			SDL_RenderDrawLine(ren, 0, Page.UnderlineIndent + i, window.width, Page.UnderlineIndent + i);
@@ -343,7 +340,7 @@ void Rules(int& mode, Appearance Page, Proportions window, Control& SettingsData
 	
 	char theme[] = u8"Правила игры";
 	SDL_Rect heading_rect;
-	SDL_Rect rules_rect = { cv, Page.UnderlineIndent + ut + cv, (window.height - Page.UnderlineIndent - ut - cv * 2) / 9 * 16, window.height - Page.UnderlineIndent - ut - cv * 2 };
+	SDL_Rect rules_rect = { window.width / 2 - (window.height - Page.UnderlineIndent - ut - cv * 2) / 9 * 16 / 2, Page.UnderlineIndent + ut + cv, (window.height - Page.UnderlineIndent - ut - cv * 2) / 9 * 16, window.height - Page.UnderlineIndent - ut - cv * 2 };
 	
 	SDL_Texture* stepback = LoadTextureFromFile("images\\stepback.png");
 	SDL_Texture* heading = GenerateTextureFromText(theme, Franklin, &heading_rect, { 255, 255, 255, 0 });
@@ -461,7 +458,7 @@ void Settings(int& mode, Appearance Page, Proportions window, Control& SettingsD
 	
 	heading_rect.x = window.width / 2 - heading_rect.w / 2;
 	heading_rect.y = Page.UnderlineIndent / 2 - heading_rect.h / 2;
-	chapter1_rect.x = cv * 2;
+	chapter1_rect.x = window.width / 3 / 2 - cv * 2;
 	chapter1_rect.y = Page.UnderlineIndent + cv * 2 + heading_rect.h / 2;
 	volume_rect.x = window.width / 3 + cv * 2;
 	volume_rect.y = Page.UnderlineIndent + cv * 2 + volume_rect.h / 2;
@@ -469,16 +466,16 @@ void Settings(int& mode, Appearance Page, Proportions window, Control& SettingsD
 	music_rect.y = volume_rect.y + music_rect.h;
 	sounds_rect.x = music_rect.x;
 	sounds_rect.y = music_rect.y + sounds_rect.h;
-	chapter2_rect.x = cv * 2;
+	chapter2_rect.x = window.width / 3 / 2 - cv * 2;
 	chapter2_rect.y = sounds_rect.y + heading_rect.h * 2;
-	to_back_rect.x = window.width / 3 + chapter2_rect.x;
+	to_back_rect.x = window.width / 3 + cv * 2;
 	to_back_rect.y = chapter2_rect.y;
 	switchbutton1_rect = { window.width / 3 * 2, music_rect.y, music_rect.h * 2, music_rect.h };
 	switchbutton2_rect = { window.width / 3 * 2, sounds_rect.y, sounds_rect.h * 2, sounds_rect.h };
 
 	minus_rect = { window.width / 3 * 2 , volume_rect.y, TextFontSize, TextFontSize };
 	plus_rect = { minus_rect.x + minus_rect.w + TextFontSize * 5 + ut * 2, volume_rect.y, TextFontSize, TextFontSize };
-	loudness_rect = { minus_rect.x + minus_rect.w + ut, volume_rect.y, increase * SettingsData.Volume + 1, TextFontSize };
+	loudness_rect = { minus_rect.x + minus_rect.w + ut * 2, volume_rect.y + 3, increase * SettingsData.Volume - 3, TextFontSize - 6 };
 
 	SDL_Event event;
 	bool quit = false;
@@ -553,7 +550,7 @@ void Settings(int& mode, Appearance Page, Proportions window, Control& SettingsD
 				}
 				if (ButtonClick(minus_rect, event.button.x, event.button.y) && event.button.button == SDL_BUTTON_LEFT)
 				{
-					if (loudness_rect.w - increase >= 0)
+					if (SettingsData.Volume != 0)
 					{
 						loudness_rect.w -= increase;
 						SettingsData.Volume--;
@@ -579,25 +576,48 @@ void Settings(int& mode, Appearance Page, Proportions window, Control& SettingsD
 		//музыка
 		if (SettingsData.Music == 1)
 		{
+			if (switchbutton1 != NULL)
+			{
+				SDL_DestroyTexture(switchbutton1);
+			}
 			switchbutton1 = LoadTextureFromFile("images\\switchon.png");
 		}
 		else
 		{
+			if (switchbutton1 != NULL)
+			{
+				SDL_DestroyTexture(switchbutton1);
+			}
 			switchbutton1 = LoadTextureFromFile("images\\switchoff.png");
 		}
 		//звуки
 		if (SettingsData.Sounds == 1)
 		{
+			if (switchbutton2!= NULL)
+			{
+				SDL_DestroyTexture(switchbutton2);
+			}
 			switchbutton2 = LoadTextureFromFile("images\\switchon.png");
 		}
 		else
 		{
+			if (switchbutton2 != NULL)
+			{
+				SDL_DestroyTexture(switchbutton2);
+			}
 			switchbutton2 = LoadTextureFromFile("images\\switchoff.png");
 		}
 
 
 		SDL_SetRenderDrawColor(ren, 0, 0, 0, 0);
 		SDL_RenderClear(ren);
+
+		SDL_SetRenderDrawColor(ren, r, g, b, 0);
+		for (int i = 0; i < ut; i++)
+		{
+			SDL_RenderDrawLine(ren, 0, Page.UnderlineIndent + i, window.width, Page.UnderlineIndent + i);
+		}
+		SDL_RenderFillRect(ren, &loudness_rect);
 
 		SDL_SetRenderDrawColor(ren, 255, 255, 255, 0);
 		for (int i = 0; i < ut; i++)
@@ -606,12 +626,7 @@ void Settings(int& mode, Appearance Page, Proportions window, Control& SettingsD
 
 			SDL_RenderDrawRect(ren, &bar_rect);
 		}
-		SDL_RenderFillRect(ren, &loudness_rect);
 
-		SDL_SetRenderDrawColor(ren, r, g, b, 0);
-		for (int i = 0; i < ut; i++)
-			SDL_RenderDrawLine(ren, 0, Page.UnderlineIndent + i, window.width, Page.UnderlineIndent + i);
-				
 		SDL_RenderCopy(ren, heading, NULL, &heading_rect);
 		SDL_RenderCopy(ren, stepback, NULL, &Page.StepBack);
 		SDL_RenderCopy(ren, chapter1, NULL, &chapter1_rect);
@@ -784,7 +799,7 @@ void Identification(int& mode, Appearance Page, Proportions window, Control& Set
 
 	SDL_Texture* stepback = LoadTextureFromFile("images\\stepback.png");
 	SDL_Texture* heading = GenerateTextureFromText(theme, Franklin, &heading_rect, { 255, 255, 255, 0 });
-	SDL_Texture* skip = LoadTextureFromFile("images\\skip.png");
+	SDL_Texture* skip = NULL;
 	SDL_Texture* nameinput = GenerateTextureFromText(message, SanFrancisco, &nameinput_rect, {255, 255, 255, 0});
 	SDL_Texture* notice1 = GenerateTextureFromText(warning1, SanFrancisco, &notice1_rect, { 255, 255, 255, 0 });
 	SDL_Texture* notice2 = GenerateTextureFromText(warning2, SanFrancisco, &notice2_rect, { 255, 255, 255, 0 });
@@ -813,7 +828,7 @@ void Identification(int& mode, Appearance Page, Proportions window, Control& Set
 	char text[2] = u8"|";
 	bool exit = false;
 	bool StartInput1 = false, StartInput2 = false;
-	bool EndInput1 = true, EndInput2 = true;
+	bool EndInput1 = false, EndInput2 = false;
 
 	SDL_Rect gambler1_rect;
 	SDL_Rect gambler2_rect;
@@ -863,19 +878,20 @@ void Identification(int& mode, Appearance Page, Proportions window, Control& Set
 					StartInput1 = true;
 					EndInput1 = false;
 					StartInput2 = false;
-					EndInput2 = true;
 				}
 				if (ButtonClick(InputText2_rect, event.button.x, event.button.y) && event.button.button == SDL_BUTTON_LEFT)
 				{
 					StartInput2 = true;
 					EndInput2 = false;
 					StartInput1 = false;
-					EndInput1 = true;
 				}
-				if (!ButtonClick(InputText1_rect, event.button.x, event.button.y) && !ButtonClick(InputText2_rect, event.button.x, event.button.y) && event.button.button == SDL_BUTTON_LEFT)
+				if (!ButtonClick(InputText1_rect, event.button.x, event.button.y) && event.button.button == SDL_BUTTON_LEFT)
 				{
 					StartInput1 = false;
 					EndInput1 = true;
+				}
+				if (!ButtonClick(InputText2_rect, event.button.x, event.button.y) && event.button.button == SDL_BUTTON_LEFT)
+				{
 					StartInput2 = false;
 					EndInput2 = true;
 				}
@@ -901,7 +917,7 @@ void Identification(int& mode, Appearance Page, Proportions window, Control& Set
 							gambler1 = GenerateTextureFromText(InputText1, SanFrancisco, &gambler1_rect, { 255, 255, 255, 255});
 						}
 					}
-					if ((event.key.keysym.sym == ' ') || (event.key.keysym.sym == '_') || ((event.key.keysym.sym >= '0') && (event.key.keysym.sym <= '9')) || ((event.key.keysym.sym >= 'a') && (event.key.keysym.sym <= 'z')) || ((event.key.keysym.sym >= 'A') && (event.key.keysym.sym <= 'Z')))
+					if ((event.key.keysym.sym == ' ') || (event.key.keysym.sym == SDLK_UNDERSCORE) || ((event.key.keysym.sym >= '0') && (event.key.keysym.sym <= '9')) || ((event.key.keysym.sym >= 'a') && (event.key.keysym.sym <= 'z')) || ((event.key.keysym.sym >= 'A') && (event.key.keysym.sym <= 'Z')))
 					{
 						if (InputIndex1 < MaxInput)
 						{
@@ -918,6 +934,7 @@ void Identification(int& mode, Appearance Page, Proportions window, Control& Set
 					if (event.key.keysym.sym == SDLK_RETURN)
 					{
 						StartInput1 = false;
+						EndInput1 = true;
 					}
 				}
 				if (StartInput2)
@@ -953,12 +970,31 @@ void Identification(int& mode, Appearance Page, Proportions window, Control& Set
 					if (event.key.keysym.sym == SDLK_RETURN)
 					{
 						StartInput2 = false;
+						EndInput2 = true;
 					}
 				}
 				break;
 			}
 
 		}
+
+		if (!strcmp(InputText1, " ") && !strcmp(InputText2, " "))
+		{
+			if (skip != NULL)
+			{
+				SDL_DestroyTexture(skip);
+			}
+			skip = LoadTextureFromFile("images\\skip.png");
+		}
+		else
+		{
+			if (skip != NULL)
+			{
+				SDL_DestroyTexture(skip);
+			}
+			skip = LoadTextureFromFile("images\\next.png");
+		}
+		
 
 
 		SDL_SetRenderDrawColor(ren, 0, 0, 0, 0);
@@ -978,8 +1014,6 @@ void Identification(int& mode, Appearance Page, Proportions window, Control& Set
 		SDL_SetRenderDrawColor(ren, r, g, b, 0);
 		for (int i = 0; i < ut; i++)
 			SDL_RenderDrawLine(ren, 0, Page.UnderlineIndent + i, window.width, Page.UnderlineIndent + i);
-
-		
 
 
 		SDL_RenderCopy(ren, player1, NULL, &player1_rect);
@@ -1011,7 +1045,7 @@ void Identification(int& mode, Appearance Page, Proportions window, Control& Set
 	TTF_CloseFont(SanFrancisco);
 	TTF_CloseFont(Franklin);
 
-	if (InputText1 != " ")
+	if (strcmp(InputText1, " ") && EndInput1)
 	{
 		strcpy_s(GameProgress.Gambler1, InputText1);
 	}
@@ -1020,7 +1054,7 @@ void Identification(int& mode, Appearance Page, Proportions window, Control& Set
 		strcpy_s(GameProgress.Gambler1, "Player 1");
 	}
 
-	if (InputText2 != " ")
+	if (strcmp(InputText2, " ") && EndInput2)
 	{
 		strcpy_s(GameProgress.Gambler2, InputText2);
 	}
@@ -1122,6 +1156,91 @@ void CheckPoint(int& mode, Appearance Page, Proportions window, Control& Setting
 
 	TTF_CloseFont(SanFrancisco);
 	TTF_CloseFont(Franklin);
+}
+
+void Ending(int& mode, Appearance Page, Proportions window, Control& SettingsData, bool& previous)
+{
+	TTF_Font* Franklin = TTF_OpenFont("fonts\\Franklin.ttf", Page.HeadingFontSize);
+	if (Franklin == NULL)
+	{
+		cout << "Couldn't open TTF: Franklin! Error: " << SDL_GetError();
+		system("pause");
+		DeInit(1);
+	}
+	int TextFontSize = window.height / 12;
+	TTF_Font* SanFrancisco = TTF_OpenFont("fonts\\San Francisco.ttf", TextFontSize);
+	if (SanFrancisco == NULL)
+	{
+		cout << "Couldn't open TTF: San Francisco! Error: " << SDL_GetError();
+		system("pause");
+		DeInit(1);
+	}
+
+
+	char theme[] = u8"Окончание игры";
+	char message[] = u8"Игра завершилась, выберите действие.";
+	SDL_Rect heading_rect;
+	SDL_Rect message_rect;
+
+	SDL_Texture* button_fifth = LoadTextureFromFile("images\\menuexit.png");
+	SDL_Texture* button_sixth = LoadTextureFromFile("images\\again.png");
+	SDL_Texture* heading = GenerateTextureFromText(theme, Franklin, &heading_rect, { 255, 255, 255, 0 });
+	SDL_Texture* announcement = GenerateTextureFromText(message, SanFrancisco, &message_rect, { 255, 255, 255, 0 });
+
+
+	SDL_Event event;
+	bool quit = false;
+
+	while (!quit)
+	{
+		while (SDL_PollEvent(&event))
+		{
+			switch (event.type)
+			{
+			case SDL_QUIT:
+				quit = true;
+				mode = 0;
+				break;
+			case SDL_MOUSEBUTTONDOWN:
+				if (ButtonClick(Page.FifthTypeButton, event.button.x, event.button.y) && event.button.button == SDL_BUTTON_LEFT)
+				{
+					quit = true;
+					mode = 1;
+
+					if (SettingsData.Sounds != 0)
+						PlayActSound(ClickSound, SettingsData.Volume);
+				}
+				if (ButtonClick(Page.SixthTypeButton, event.button.x, event.button.y))
+				{
+					quit = true;
+					mode = 7;
+					previous = false;
+
+					if (SettingsData.Sounds != 0)
+						PlayActSound(ClickSound, SettingsData.Volume);
+				}
+				break;
+			}
+
+		}
+		SDL_SetRenderDrawColor(ren, 0, 0, 0, 0);
+		SDL_RenderClear(ren);
+
+		SDL_SetRenderDrawColor(ren, r, g, b, 0);
+		for (int i = 0; i < ut; i++)
+			SDL_RenderDrawLine(ren, 0, Page.UnderlineIndent + i, window.width, Page.UnderlineIndent + i);
+
+		heading_rect.x = window.width / 2 - heading_rect.w / 2;
+		heading_rect.y = Page.UnderlineIndent / 2 - heading_rect.h / 2;
+		message_rect.x = window.width / 2 - message_rect.w / 2;
+		message_rect.y = Page.FifthTypeButton.y / 2 + Page.UnderlineIndent + ut - message_rect.h / 2;
+		SDL_RenderCopy(ren, heading, NULL, &heading_rect);
+		SDL_RenderCopy(ren, announcement, NULL, &message_rect);
+		SDL_RenderCopy(ren, button_fifth, NULL, &Page.FifthTypeButton);
+		SDL_RenderCopy(ren, button_sixth, NULL, &Page.SixthTypeButton);
+
+		SDL_RenderPresent(ren);
+	}
 }
 
 void Play(int& mode, Proportions window, Zones Game, Elements& GameProgress, Appearance Page, Control &SettingsData, bool &previous)
@@ -1270,6 +1389,8 @@ void Play(int& mode, Proportions window, Zones Game, Elements& GameProgress, App
 	bool flag = false;
 	//смена очереди
 	bool change = false;
+	//ничья
+	bool draw = false;
 	//вспомогательная для раунда
 	int pt;
 	//для анимации
@@ -1289,6 +1410,11 @@ void Play(int& mode, Proportions window, Zones Game, Elements& GameProgress, App
 		pt = GameProgress.Round;
 		_itoa_s(pt, phasetext, 10);
 		strcat_s(phasetext, u8" раунд");
+	}
+
+	if (GameProgress.LeadSwap == 1 && GameProgress.LeadThrows == 0)
+	{
+		Compare[0] = FindBestCombination(GameProgress);
 	}
 
 	char points1[ams];
@@ -1371,22 +1497,24 @@ void Play(int& mode, Proportions window, Zones Game, Elements& GameProgress, App
 				mode = 0;
 				break;
 			case SDL_KEYDOWN:
-				if (event.key.keysym.scancode == SDL_SCANCODE_ESCAPE)
+				if (end)
 				{
-					if (end == true)
-					{
-						mode = 1;
+					mode = 4;
+					quit = true;
+				}
+				if (event.key.keysym.scancode == SDL_SCANCODE_ESCAPE && !end)
+				{
+					PauseMenu(mode, Page, window, SettingsData);
+					if (mode == 1 || mode == 0)
 						quit = true;
-					}
-					else
-					{
-						PauseMenu(mode, Page, window, SettingsData);
-						if (mode == 1 || mode == 0)
-							quit = true;
-					}
 				}
 				break;
 			case SDL_MOUSEBUTTONDOWN:
+				if (end)
+				{
+					mode = 4;
+					quit = true;
+				}
 				if (ButtonClick(Game.PauseButton, event.button.x, event.button.y) && event.button.button == SDL_BUTTON_LEFT)
 				{
 					if (SettingsData.Sounds != 0)
@@ -1408,8 +1536,15 @@ void Play(int& mode, Proportions window, Zones Game, Elements& GameProgress, App
 
 					if (GameProgress.LeadSwap == 2)
 					{
+						if (GameProgress.Round == 0 && draw)
+						{
+							GameProgress.ThrowMax = 1;
+						}
+						else
+						{
+							GameProgress.ThrowMax = 3;
+						}
 						GameProgress.LeadSwap = 0;
-						GameProgress.ThrowMax = 3;
 						GameProgress.LeadThrows = 0;
 						flag = true;
 					}
@@ -1436,8 +1571,15 @@ void Play(int& mode, Proportions window, Zones Game, Elements& GameProgress, App
 
 					if (GameProgress.LeadSwap == 2)
 					{
+						if (GameProgress.Round == 0 && draw)
+						{
+							GameProgress.ThrowMax = 1;
+						}
+						else
+						{
+							GameProgress.ThrowMax = 3;
+						}
 						GameProgress.LeadSwap = 0;
-						GameProgress.ThrowMax = 3;
 						GameProgress.LeadThrows = 0;
 						flag = true;
 					}
@@ -1474,8 +1616,6 @@ void Play(int& mode, Proportions window, Zones Game, Elements& GameProgress, App
 
 		//==============================================================================
 		//логика
-		
-		
 		//ходы
   		if (animation == false)
 		{
@@ -1530,16 +1670,33 @@ void Play(int& mode, Proportions window, Zones Game, Elements& GameProgress, App
 							strcpy_s(GameProgress.OutcomeText, u8"Ничья");
 							strcpy_s(GameProgress.FinalText, u8"Переигровка");
 
+							draw = true;
+
 							GameProgress.Queue = 1;
 							gameglasscopy.x = infwidth / 2 - (playheight / 12 * 11) / 29 * 19 / 2;
 						}
 
-						SDL_DestroyTexture(outcome);
-						SDL_DestroyTexture(final);
+						strcpy_s(phasetext, " ");
+						strcpy_s(phasetext, u8"Жеребьевка");
 
+						if (phase != NULL)
+						{
+							SDL_DestroyTexture(phase);
+						}
+						if (outcome != NULL)
+						{
+							SDL_DestroyTexture(outcome);
+						}
+						if (final != NULL)
+						{
+							SDL_DestroyTexture(final);
+						}
+		
+						phase = GenerateTextureFromText(phasetext, Franklin, &phase_rect, { 255, 255, 255, 0 });
 						outcome = GenerateTextureFromText(GameProgress.OutcomeText, Franklin, &outcome_rect, { 255, 255, 255, 0 });
 						final = GenerateTextureFromText(GameProgress.FinalText, Franklin, &final_rect, { 255, 255, 255, 0 });
 
+						phase_rect.x = Game.Results.x + Game.Results.w / 2 - phase_rect.w / 2;
 						outcome_rect.x = Game.Results.x + Game.Results.w / 2 - outcome_rect.w / 2;
 						final_rect.x = Game.Results.x + Game.Results.w / 2 - final_rect.w / 2;
 
@@ -1552,25 +1709,22 @@ void Play(int& mode, Proportions window, Zones Game, Elements& GameProgress, App
 
 						if (Compare[0] > Compare[1])
 						{
+							strcpy_s(phasetext, " ");
 							GameProgress.p1++;
 							if (GameProgress.p1 >= 3)
 							{
-								strcpy_s(phasetext, " ");
 								strcpy_s(phasetext, GameProgress.Gambler1);
 								strcpy_s(GameProgress.OutcomeText, u8"Одержал победу");
 								sprintf_s(GameProgress.FinalText, u8"со счетом %d : %d", GameProgress.p1, GameProgress.p2);
-								
-								SDL_DestroyTexture(phase);
-
-								phase = GenerateTextureFromText(phasetext, Franklin, &phase_rect, { 255, 255, 255, 0 });
-
-								phase_rect.x = Game.Results.x + Game.Results.w / 2 - phase_rect.w / 2;
 								
 								GameProgress.GameStatus = 0;
 								end = true;
 							}
 							else
 							{
+								pt = GameProgress.Round;
+								_itoa_s(pt, phasetext, 10);
+								strcat_s(phasetext, u8" раунд");
 								strcpy_s(GameProgress.OutcomeText, u8"Победил");
 								strcpy_s(GameProgress.FinalText, GameProgress.Gambler1);
 
@@ -1586,40 +1740,54 @@ void Play(int& mode, Proportions window, Zones Game, Elements& GameProgress, App
 								}
 							}
 
-							SDL_DestroyTexture(outcome);
-							SDL_DestroyTexture(final);
-							SDL_DestroyTexture(score1);
+							if (outcome != NULL)
+							{
+								SDL_DestroyTexture(outcome);
+							}
+							if (final != NULL)
+							{
+								SDL_DestroyTexture(final);
+							}
+							if (score1 != NULL)
+							{
+								SDL_DestroyTexture(score1);
+							}
+							if (phase != NULL)
+							{
+								SDL_DestroyTexture(phase);
+							}
 
 							_itoa_s(GameProgress.p1, points1, 10);
 
+							phase = GenerateTextureFromText(phasetext, Franklin, &phase_rect, { 255, 255, 255, 0 });
 							outcome = GenerateTextureFromText(GameProgress.OutcomeText, Franklin, &outcome_rect, { 255, 255, 255, 0 });
 							final = GenerateTextureFromText(GameProgress.FinalText, Franklin, &final_rect, { 255, 255, 255, 0 });
 							score1 = GenerateTextureFromText(points1, Franklin, &score1_rect, { 255, 255, 255, 0 });
 
+							phase_rect.x = Game.Results.x + Game.Results.w / 2 - phase_rect.w / 2;
 							outcome_rect.x = Game.Results.x + Game.Results.w / 2 - outcome_rect.w / 2;
 							final_rect.x = Game.Results.x + Game.Results.w / 2 - final_rect.w / 2;		
+							score1_rect.x = Game.Score1.x + Game.Score1.w / 2 - score1_rect.w / 2;
 						}
 						else if (Compare[0] < Compare[1])
 						{
 							GameProgress.p2++;
+							strcpy_s(phasetext, " ");
 							if (GameProgress.p2 >= 3)
 							{
-								strcpy_s(phasetext, " ");
+								
 								strcpy_s(phasetext, GameProgress.Gambler2);
 								strcpy_s(GameProgress.OutcomeText, u8"Одержал победу");
 								sprintf_s(GameProgress.FinalText, u8"со счетом %d : %d", GameProgress.p2, GameProgress.p1);
-								
-								SDL_DestroyTexture(phase);
-
-								phase = GenerateTextureFromText(phasetext, Franklin, &phase_rect, { 255, 255, 255, 0 });
-								
-								phase_rect.x = Game.Results.x + Game.Results.w / 2 - phase_rect.w / 2;
-								
+							
 								GameProgress.GameStatus = 0;
 								end = true;
 							}
 							else 
 							{
+								pt = GameProgress.Round;
+								_itoa_s(pt, phasetext, 10);
+								strcat_s(phasetext, u8" раунд");
 								strcpy_s(GameProgress.OutcomeText, u8"Победил");
 								strcpy_s(GameProgress.FinalText, GameProgress.Gambler2);
 								
@@ -1635,33 +1803,67 @@ void Play(int& mode, Proportions window, Zones Game, Elements& GameProgress, App
 								}
 							}
 
-							SDL_DestroyTexture(phase);
-							SDL_DestroyTexture(outcome);
-							SDL_DestroyTexture(score2);
+							if (outcome != NULL)
+							{
+								SDL_DestroyTexture(outcome);
+							}
+							if (final != NULL)
+							{
+								SDL_DestroyTexture(final);
+							}
+							if (score2 != NULL)
+							{
+								SDL_DestroyTexture(score2);
+							}
+							if (phase != NULL)
+							{
+								SDL_DestroyTexture(phase);
+							}
 
 							_itoa_s(GameProgress.p2, points2, 10);
 							
+							phase = GenerateTextureFromText(phasetext, Franklin, &phase_rect, { 255, 255, 255, 0 });
 							outcome = GenerateTextureFromText(GameProgress.OutcomeText, Franklin, &outcome_rect, { 255, 255, 255, 0 });
 							final = GenerateTextureFromText(GameProgress.FinalText, Franklin, &final_rect, { 255, 255, 255, 0 });
 							score2 = GenerateTextureFromText(points2, Franklin, &score2_rect, { 255, 255, 255, 0 });
 
+							phase_rect.x = Game.Results.x + Game.Results.w / 2 - phase_rect.w / 2;
 							outcome_rect.x = Game.Results.x + Game.Results.w / 2 - outcome_rect.w / 2;
 							final_rect.x = Game.Results.x + Game.Results.w / 2 - final_rect.w / 2;
 							score2_rect.x = Game.Score2.x + Game.Score2.w / 2 - score2_rect.w / 2;
 						}
 						else if (Compare[0] == Compare[1])
 						{
+							strcpy_s(phasetext, " ");
+							pt = GameProgress.Round;
+							_itoa_s(pt, phasetext, 10);
+							strcat_s(phasetext, u8" раунд");
 							strcpy_s(GameProgress.OutcomeText, u8"Ничья");
 							strcpy_s(GameProgress.FinalText, u8"Переигровка");
 
-							SDL_DestroyTexture(outcome);
-							SDL_DestroyTexture(final);
+							if (phase != NULL)
+							{
+								SDL_DestroyTexture(phase);
+							}
+							if (outcome != NULL)
+							{
+								SDL_DestroyTexture(outcome);
+							}
+							if (final != NULL)
+							{
+								SDL_DestroyTexture(final);
+							}
 
+
+							phase = GenerateTextureFromText(phasetext, Franklin, &phase_rect, { 255, 255, 255, 0 });
 							outcome = GenerateTextureFromText(GameProgress.OutcomeText, Franklin, &outcome_rect, { 255, 255, 255, 0 });
 							final = GenerateTextureFromText(GameProgress.FinalText, Franklin, &final_rect, { 255, 255, 255, 0 });
 
+							phase_rect.x = Game.Results.x + Game.Results.w / 2 - phase_rect.w / 2;
 							outcome_rect.x = Game.Results.x + Game.Results.w / 2 - outcome_rect.w / 2;
 							final_rect.x = Game.Results.x + Game.Results.w / 2 - final_rect.w / 2;
+
+							draw = true;
 
 							if (GameProgress.Queue == 1)
 							{
@@ -1688,21 +1890,51 @@ void Play(int& mode, Proportions window, Zones Game, Elements& GameProgress, App
 			strcpy_s(GameProgress.OutcomeText, u8" ");
 			strcpy_s(GameProgress.FinalText, " ");
 			strcpy_s(phasetext, " ");
+			strcpy_s(GameProgress.Combo1, " ");
+			strcpy_s(GameProgress.Combo2, " ");
 
-			GameProgress.Round++;
-			pt = GameProgress.Round;
-			_itoa_s(pt, phasetext, 10);
-			strcat_s(phasetext, u8" раунд");
-			strcpy_s(GameProgress.OutcomeText, u8" ");
-			strcpy_s(GameProgress.FinalText, u8" ");
+			if (!draw)
+			{
+				GameProgress.Round++;
+			}
 
-			SDL_DestroyTexture(phase);
-			SDL_DestroyTexture(outcome);
-			SDL_DestroyTexture(final);
+			if (GameProgress.Round == 0)
+			{
+				strcpy_s(phasetext, u8"Жеребьевка");
+			}
+			else
+			{
+				pt = GameProgress.Round;
+				_itoa_s(pt, phasetext, 10);
+				strcat_s(phasetext, u8" раунд");
+			}
+
+			if (phase != NULL)
+			{
+				SDL_DestroyTexture(phase);
+			}
+			if (outcome != NULL)
+			{
+				SDL_DestroyTexture(outcome);
+			}
+			if (final != NULL)
+			{
+				SDL_DestroyTexture(final);
+			}
+			if (combo1 != NULL)
+			{
+				SDL_DestroyTexture(combo1);
+			}
+			if (combo2 != NULL)
+			{
+				SDL_DestroyTexture(combo2);
+			}
 
 			phase = GenerateTextureFromText(phasetext, Franklin, &phase_rect, { 255, 255, 255, 0 });
 			outcome = GenerateTextureFromText(GameProgress.OutcomeText, Franklin, &outcome_rect, { 255, 255, 255, 0 });
 			final = GenerateTextureFromText(GameProgress.FinalText, Franklin, &final_rect, { 255, 255, 255, 0 });
+			combo1 = GenerateTextureFromText(GameProgress.Combo1, SanFrancisco, &combo1_rect, { 255, 255, 255, 0 });
+			combo2 = GenerateTextureFromText(GameProgress.Combo2, SanFrancisco, &combo2_rect, { 255, 255, 255, 0 });
 
 			phase_rect.x = Game.Results.x + Game.Results.w / 2 - phase_rect.w / 2;
 			outcome_rect.x = Game.Results.x + Game.Results.w / 2 - outcome_rect.w / 2;
@@ -1710,6 +1942,7 @@ void Play(int& mode, Proportions window, Zones Game, Elements& GameProgress, App
 
 			flag = false;
 			freeze = false;
+			draw = false;
 		}
 
 		if (GameProgress.Queue == 1)
@@ -1738,6 +1971,7 @@ void Play(int& mode, Proportions window, Zones Game, Elements& GameProgress, App
 				{
 					GenerateRandValues(GameProgress.DiceValues, GameProgress.Queue);
 					PlayActSound(MixingSound, SettingsData.Volume);
+					SDL_Delay(500);
 					down = true;
 				}
 			}
@@ -1757,13 +1991,19 @@ void Play(int& mode, Proportions window, Zones Game, Elements& GameProgress, App
 					if (GameProgress.Queue == 1)
 					{
 						strcpy_s(GameProgress.Combo1, " ");
-						SDL_DestroyTexture(combo1);
+						if (combo1 != NULL)
+						{
+							SDL_DestroyTexture(combo1);
+						}
 						combo1 = GenerateCombination(GameProgress, SanFrancisco, &combo1_rect, { 255, 255, 255, 0 }, Compare[0]);
 					}
 					else
 					{
 						strcpy_s(GameProgress.Combo2, " ");
-						SDL_DestroyTexture(combo2);
+						if (combo2 != NULL)
+						{
+							SDL_DestroyTexture(combo2);
+						}
 						combo2 = GenerateCombination(GameProgress, SanFrancisco, &combo2_rect, { 255, 255, 255, 0 }, Compare[1]);
 					}
 					animation = false;
@@ -1978,7 +2218,13 @@ void Play(int& mode, Proportions window, Zones Game, Elements& GameProgress, App
 	//прогресс
 	PrintGameProgressDataFile(GameProgress);
 	if (GameProgress.GameStatus != 0)
+	{
 		previous = true;
+	}
+	else
+	{
+		previous = false;
+	}
 }
 
 void PageLayout(Appearance& Page, Proportions window, Zones& Game)
@@ -2136,4 +2382,3 @@ void PlayActSound(const char* name, int volume)
 	Mix_VolumeChunk(sound, volume * 12);
 	Mix_PlayChannel(-1, sound, 0);
 }
-

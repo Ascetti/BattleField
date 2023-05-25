@@ -123,6 +123,7 @@ void CheckPoint(int& mode, Appearance Page, Proportions window, Control& Setting
 void Identification(int& mode, Appearance Page, Proportions window, Control& SettingsData, Elements& GameProgress);
 void Play(int& mode, Proportions window, Zones Game, Elements& GameProgress, Appearance Page, Control& SettingsData, bool& previous);
 void PauseMenu(int& mode, Appearance Page, Proportions window, Control& SettingsData);
+void Ending(int& mode, Appearance Page, Proportions window, Control& SettingsData, bool& previous);
 
 void ReadSettingsFile(Control& SettingsData);
 void PrintSettingsFile(Control& SettingsData);

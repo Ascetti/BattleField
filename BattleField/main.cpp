@@ -70,7 +70,7 @@ int main(int argc, char** argv)
 			Rules(mode, Page, window, SettingsData);
 			break;
 		case 4:
-			Settings(mode, Page, window, SettingsData);
+			Ending(mode, Page, window, SettingsData, previous);
 			break;
 		case 5:
 			CheckPoint(mode, Page, window, SettingsData, previous);
