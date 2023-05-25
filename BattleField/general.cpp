@@ -1481,7 +1481,7 @@ void Play(int& mode, Proportions window, Zones Game, Elements& GameProgress, App
 					mode = 4;
 					quit = true;
 				}
-				if (event.key.keysym.scancode == SDL_SCANCODE_ESCAPE && !end)
+				if (event.key.keysym.scancode == SDL_SCANCODE_ESCAPE && !end && animation == false)
 				{
 					PauseMenu(mode, Page, window, SettingsData);
 					if (mode == 1 || mode == 0)
@@ -1494,7 +1494,7 @@ void Play(int& mode, Proportions window, Zones Game, Elements& GameProgress, App
 					mode = 4;
 					quit = true;
 				}
-				if (ButtonClick(Game.PauseButton, event.button.x, event.button.y) && event.button.button == SDL_BUTTON_LEFT)
+				if (ButtonClick(Game.PauseButton, event.button.x, event.button.y) && event.button.button == SDL_BUTTON_LEFT && animation == false)
 				{
 					if (SettingsData.Sounds != 0)
 						PlayActSound(ClickSound, SettingsData.Volume);
@@ -1574,7 +1574,7 @@ void Play(int& mode, Proportions window, Zones Game, Elements& GameProgress, App
 						PlayActSound(ClickSound, SettingsData.Volume);
 				}
 				//first skip button
-				if (ButtonClick(Game.SkipButton1, event.button.x, event.button.y) && event.button.button == SDL_BUTTON_LEFT && GameProgress.Queue == 1 && animation == false && GameProgress.LeadThrows != 0 && end == false)
+				if (ButtonClick(Game.SkipButton1, event.button.x, event.button.y) && event.button.button == SDL_BUTTON_LEFT && GameProgress.Queue == 1 && animation == false && GameProgress.LeadThrows != 0 && GameProgress.LeadSwap < 2 && end == false)
 				{
 					change = true;
 
@@ -1582,7 +1582,7 @@ void Play(int& mode, Proportions window, Zones Game, Elements& GameProgress, App
 						PlayActSound(ClickSound, SettingsData.Volume);
 				}
 				//second skip button
-				if (ButtonClick(Game.SkipButton2, event.button.x, event.button.y) && event.button.button == SDL_BUTTON_LEFT && GameProgress.Queue == 2 && animation == false && GameProgress.LeadThrows != 0 && end == false)
+				if (ButtonClick(Game.SkipButton2, event.button.x, event.button.y) && event.button.button == SDL_BUTTON_LEFT && GameProgress.Queue == 2 && animation == false && GameProgress.LeadThrows != 0 && GameProgress.LeadSwap < 2  && end == false)
 				{
 					change = true;
 
