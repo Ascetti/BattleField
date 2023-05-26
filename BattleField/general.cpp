@@ -921,14 +921,16 @@ void Identification(int& mode, Appearance Page, Proportions window, Control& Set
 						SDL_TextInputEvent textinput;
 						textinput.text[0] = event.text.text[0];
 						if (textinput.text[0] == '_' || (textinput.text[0] >= 'A' && textinput.text[0] <= 'Z') || (textinput.text[0] >= 'a' && textinput.text[0] <= 'z') || textinput.text[0] == ' ' || ((textinput.text[0] >= '0' && textinput.text[0] <= '9')))
-						InputText1[InputIndex1] = textinput.text[0];
-						InputIndex1 += 1;
-						InputText1[InputIndex1] = '\0';
-						if (gambler1 != NULL)
 						{
-							SDL_DestroyTexture(gambler1);
+							InputText1[InputIndex1] = textinput.text[0];
+							InputIndex1 += 1;
+							InputText1[InputIndex1] = '\0';
+							if (gambler1 != NULL)
+							{
+								SDL_DestroyTexture(gambler1);
+							}
+							gambler1 = GenerateTextureFromText(InputText1, SanFrancisco, &gambler1_rect, { 255, 255, 255, 255 });
 						}
-						gambler1 = GenerateTextureFromText(InputText1, SanFrancisco, &gambler1_rect, { 255, 255, 255, 255 });
 					}
 				}
 				if (StartInput2)
@@ -947,11 +949,6 @@ void Identification(int& mode, Appearance Page, Proportions window, Control& Set
 								SDL_DestroyTexture(gambler2);
 							}
 							gambler2 = GenerateTextureFromText(InputText2, SanFrancisco, &gambler2_rect, { 255, 255, 255, 255 });
-						}
-						if (event.key.keysym.sym == SDLK_RETURN)
-						{
-							StartInput2 = false;
-							EndInput2 = true;
 						}
 					}
 				}
