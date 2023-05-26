@@ -814,9 +814,12 @@ void Identification(int& mode, Appearance Page, Proportions window, Control& Set
 	SDL_Texture* gambler1 = NULL;
 	SDL_Texture* gambler2 = NULL;
 
-
-	char InputText1[ams] = " ";
-	char InputText2[ams] = " ";
+	char* InputText1 = new char[MaxInput + 2];
+	InputText1[0] = ' ';
+	char* InputText2 = new char[MaxInput + 2];
+	InputText2[0] = ' ';
+	/*char InputText1[ams] = " ";
+	char InputText2[ams] = " ";*/
 
 
 	gambler1_rect = { window.width / 5 + cv, player1_rect.y + player1_rect.h / 2 - TextFontSize / 2, 0, 0 };
@@ -1046,6 +1049,10 @@ void Identification(int& mode, Appearance Page, Proportions window, Control& Set
 	{
 		strcpy_s(GameProgress.Gambler2, " Player 2");
 	}
+
+
+	delete[]InputText1;
+	delete[]InputText2;
 }
 
 void CheckPoint(int& mode, Appearance Page, Proportions window, Control& SettingsData, bool& previous)
