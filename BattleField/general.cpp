@@ -58,7 +58,7 @@ void Init(Proportions &window)
 	window.width = dm.w;
 	window.height = dm.h;
 
-	win = SDL_CreateWindow(u8"Че?!", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, window.width, window.width, SDL_WINDOW_SHOWN | SDL_WINDOW_FULLSCREEN_DESKTOP);
+	win = SDL_CreateWindow(u8"Dice!!!", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, window.width, window.width, SDL_WINDOW_SHOWN | SDL_WINDOW_FULLSCREEN_DESKTOP);
 	if (win == NULL)
 	{
 		cout << "Couldn't create Window! Error: " << SDL_GetError();
@@ -314,11 +314,12 @@ void Rules(int& mode, Appearance Page, Proportions window, Control& SettingsData
 	
 	char theme[] = u8"Правила игры";
 	SDL_Rect heading_rect;
-	SDL_Rect rules_rect = { cv * 2, Page.UnderlineIndent + ut + cv, (window.height - Page.UnderlineIndent - ut - cv * 2) / 9 * 16, window.height - Page.UnderlineIndent - ut - cv * 2 };
+	/*SDL_Rect rules_rect = { cv * 2, Page.UnderlineIndent + ut + cv, (window.height - Page.UnderlineIndent - ut - cv * 2) / 9 * 16, window.height - Page.UnderlineIndent - ut - cv * 2 };*/
+	SDL_Rect rules2_rect = { cv, window.height / 2 - (window.width - cv * 2) / 13 * 5 / 2 + (Page.UnderlineIndent + ut + cv) / 2, window.width - cv * 2, (window.width - cv * 2) / 13 * 5 };
 	
 	SDL_Texture* stepback = LoadTextureFromFile("images\\stepback.png");
 	SDL_Texture* heading = GenerateTextureFromText(theme, Franklin, &heading_rect, { 255, 255, 255, 0 });
-	SDL_Texture* rules = LoadTextureFromFile("images\\rules.png");
+	SDL_Texture* rules = LoadTextureFromFile("images\\rules2.png");
 
 	heading_rect.x = window.width / 2 - heading_rect.w / 2;
 	heading_rect.y = Page.UnderlineIndent / 2 - heading_rect.h / 2;
@@ -328,7 +329,7 @@ void Rules(int& mode, Appearance Page, Proportions window, Control& SettingsData
 
 	while (!quit)
 	{
-		while (SDL_PollEvent(&event))
+		while (SDL_PollEvent(&event)) 
 		{
 			switch (event.type)
 			{
@@ -364,7 +365,7 @@ void Rules(int& mode, Appearance Page, Proportions window, Control& SettingsData
 
 		SDL_RenderCopy(ren, heading, NULL, &heading_rect);
 		SDL_RenderCopy(ren, stepback, NULL, &Page.StepBack);
-		SDL_RenderCopy(ren, rules, NULL, &rules_rect);
+		SDL_RenderCopy(ren, rules, NULL, &rules2_rect);
 
 		SDL_RenderPresent(ren);
 	}
@@ -814,8 +815,8 @@ void Identification(int& mode, Appearance Page, Proportions window, Control& Set
 	SDL_Texture* gambler1 = NULL;
 	SDL_Texture* gambler2 = NULL;
 
-	char InputText1[ams] = " ";
-	char InputText2[ams] = " ";
+	char InputText1[ams] = u8" ";
+	char InputText2[ams] = u8" ";
 
 	gambler1_rect = { window.width / 5 + cv, player1_rect.y + player1_rect.h / 2 - TextFontSize / 2, 0, 0 };
 	gambler2_rect = { window.width / 5 + cv, player2_rect.y + player2_rect.h / 2 - TextFontSize / 2, 0, 0 };
@@ -2286,6 +2287,12 @@ SDL_Texture* LoadTextureFromFile(const char* filename)
 SDL_Texture* GenerateTextureFromText(char* str, TTF_Font* font, SDL_Rect* rect, SDL_Color fg)
 {
 	SDL_Surface* surface = TTF_RenderUTF8_Blended(font, str, fg);
+	if (surface == NULL)
+	{
+		cout << "Couldn't load text! Error: " << SDL_GetError();
+		system("pause");
+		DeInit(1);
+	}
 	rect->w = surface->w;
 	rect->h = surface->h;
 	SDL_Texture* texture = SDL_CreateTextureFromSurface(ren, surface);
